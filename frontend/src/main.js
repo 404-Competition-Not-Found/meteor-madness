@@ -8,12 +8,6 @@ import { createAsteroid } from './core/objects/asteroid.js';
 
 const { scene, camera, renderer } = createScene();
 
-createSatellite().then((satellite) => {
-  scene.add(satellite);
-}).catch((err) => {
-  console.error(err);
-});
-
 const earthMesh = createEarth();
 scene.add(earthMesh);
 
@@ -23,5 +17,9 @@ scene.add(spaceMesh);
 const asteroidMesh = createAsteroid();
 scene.add(asteroidMesh);
 
-// avvia animazione
-startRenderLoop(scene, camera, renderer, earthMesh, asteroidMesh);
+createSatellite().then((satelliteMesh) => {
+  scene.add(satelliteMesh);
+  startRenderLoop(scene, camera, renderer, earthMesh, asteroidMesh, satelliteMesh);
+}).catch((err) => {
+  console.error(err);
+});

@@ -32,7 +32,7 @@ export function createAsteroid() {
   });
 
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.set(-5, 0, 0);
+  mesh.position.set(-10, 0, 0);
 
   return mesh;
 }
