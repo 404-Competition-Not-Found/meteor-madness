@@ -12,7 +12,6 @@ export function startRenderLoop(scene, camera, renderer, earthMesh) {
 
   function animate() {
     const dt = clock.getDelta();
-    earthMesh.rotation.y += 0.05 * dt;
     controls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
