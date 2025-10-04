@@ -18,10 +18,12 @@ const baseUrl = "https://api.nasa.gov";
 
 
 /* ==== REST ================================================================ */
+/** Test API. */
 app.get('/', (_req: any, res: any) => {
     res.send('Hello, Express with TypeScript!');
 });
 
+/** Retrieve all asteroids approaching the Earth in a date range. */
 app.get("/asteroids", async (req: any, res: any) => {
     const startDate = req.query["start_date"] || "2025-10-04";
     const endDate = req.query["end_date"] || "2025-10-11";
@@ -50,33 +52,29 @@ app.get("/asteroids", async (req: any, res: any) => {
     */
 })
 
-app.get("/asteroids/:id", async (req: any, res: any) => {
-    const id = req.params["id"];
-    if(!id) return res.status(400).send();
+/** Retrieve asteroid details by id. */
+app.post("/simulate", async (req: any, res: any) => {
+    const { eccentricity, theta, point } = req.body || {};
 
-    const response = await axios.get(`${baseUrl}/neo/rest/v1/neo/${id}`,{ params: {
-        api_key: API_KEY
-    }});
-    //const { links, ...data } = response.data;
+    if (
+        typeof eccentricity !== 'number' || typeof theta !== 'number' ||
+        !point || typeof point.x !== 'number' || typeof point.y !== 'number'
+    ) return res.status(400).send()
 
-    res.send(removeLinks(response.data));
+    // TODO: calculate new orbital period
 
-    /*
-    const neoData = data.near_earth_objects;
-
-    let hazardousAsteroids: any[] = [];
-
-    for (const date in neoData) {
-        const dailyAsteroids = neoData[date];
-        const hazardousForDay = dailyAsteroids.filter((asteroid: any) => asteroid.is_potentially_hazardous_asteroid);
-        hazardousAsteroids = hazardousAsteroids.concat(hazardousForDay);
-    }
-
-    console.log(JSON.stringify(hazardousAsteroids));
-    return hazardousAsteroids;
-    */
+    res.send({ orbital_period: reverse(eccentricity, theta, point.x, point.y) });
 })
 
+function reverse(e: number, theta: number, x: number, y: number) {
+    const P = x*Math.cos(theta)+y*Math.sin(theta);
+    const Q =-x*Math.sin(theta)+y*Math.cos(theta);
+    const alpha = (e^2)*((1-e^2)*(1-Math.cos(theta))^2+(Math.sin(theta))^2)-(1-e^2);
+    const beta = 2*e*((1-e^2)*P*(1-Math.cos(theta))+Q*Math.sin(theta));
+    const gamma =(1-e^2)*P^2+Q^2;
+
+    return (Math.sqrt(beta^2-4*alpha*gamma)-beta)/(2*alpha)
+}
 
 /* ==== LISTEN ============================================================== */
 server.listen(PORT, () => {
