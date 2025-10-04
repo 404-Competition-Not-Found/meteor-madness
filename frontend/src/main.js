@@ -17,14 +17,5 @@ scene.add(spaceMesh);
 const asteroidMesh = createAsteroid();
 scene.add(asteroidMesh);
 
-// centro del cratere (versore)
-const centerDir = new THREE.Vector3(0, 0, 1);
-
-// raggio e profondità del cratere
-const craterRadius = 0.8;
-const craterDepth = 0.3;
-
-addCraterVertexColor(earthMesh, centerDir, craterRadius, craterDepth);
-
 // avvia animazione
-startRenderLoop(scene, camera, renderer, earthMesh);
+startRenderLoop(scene, camera, renderer, earthMesh, asteroidMesh);
