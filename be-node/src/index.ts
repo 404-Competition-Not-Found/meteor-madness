@@ -36,12 +36,25 @@ app.get("/asteroids", async (req: any, res: any) => {
 
     const data = removeLinks(response.data)
 
-    const result: any = [];
+    let result: any = [];
     for (const [date, objects] of Object.entries(data.near_earth_objects) as any) {
         objects.forEach((obj: any) => {
             result.push({ ...obj, date });
         });
     }
+
+    result = result.map((obj: any) => {
+        const km = obj.estimated_diameter?.kilometers;
+        if (km && typeof km.estimated_diameter_min === 'number' && typeof km.estimated_diameter_max === 'number') {
+        const avgDiameter = (km.estimated_diameter_min + km.estimated_diameter_max) / 2;
+        return {
+            ...obj,
+            estimated_diameter: avgDiameter
+        };
+        }
+        // If no diameter info, just return the object as is
+        return obj;
+    });
 
     res.send(result);
 
