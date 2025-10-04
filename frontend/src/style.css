@@ -5,7 +5,7 @@
   right: 0;
   width: 320px;
   height: 100%;
-  background: rgba(10,10,30,0.95);
+  background: rgba(10,10,30,0.5);
   border-left: 2px solid #00ffff;
   box-shadow: -5px 0 20px rgba(0, 255, 255, 0.2);
   display: flex;
@@ -25,46 +25,45 @@
   transform: translateX(100%);
 }
 
-#hudToggle { 
-    position: absolute; 
-    top: 50%; 
-    right: 310px; 
-    width: 40px; 
-    height: 40px; 
-    background-color: #00ffff; 
-    color: #000; 
-    font-weight: bold; 
-    border-radius: 6px; 
-    cursor: pointer; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    z-index: 15; 
-    user-select: none; 
-    transform: translateY(-50%); 
-    box-shadow: 0 0 12px rgba(0,255,255,0.4); 
-    transition: transform 0.2s, box-shadow 0.2s;
+/* Toggle */
+#hudToggle {
+  position: absolute;
+  top: 50%;
+  right: 350px;
+  width: 40px;
+  height: 40px;
+  background-color: #00ffff;
+  color: #000;
+  font-weight: bold;
+  border-radius: 6px 0 0 6px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: translateY(-50%);
+  box-shadow: 0 0 12px rgba(0,255,255,0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 15;
 }
 
 #hudToggle:hover {
   box-shadow: 0 0 20px rgba(0,255,255,0.7);
 }
 
-/* Titolo principale più spaziale */
+/* Titolo */
 #hud h2 {
   text-align: center;
   color: #00ffff;
   margin-bottom: 15px;
   font-weight: 700;
-  font-size: 1.6rem;
-  letter-spacing: 2px;
-  text-shadow: 0 0 8px #00ffff66, 0 0 15px #00ffff33;
+  font-size: 1.4rem;
+  letter-spacing: 1px;
 }
 
-/* Header tabella asteroidi */
+/* Header tabella */
 .asteroid-header {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr; /* larghezze proporzionali alle colonne */
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   gap: 10px;
   font-weight: 600;
   padding: 6px 10px;
@@ -75,29 +74,24 @@
   font-size: 0.9rem;
 }
 
-.asteroid-header span {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
+/* Lista asteroidi */
 .asteroid-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-/* Righe asteroidi */
+/* Elemento asteroide */
 .asteroid-item {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr; /* stessa struttura dell'header */
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   gap: 10px;
   padding: 8px 10px;
   border-radius: 6px;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
   background: rgba(0,255,255,0.05);
+  transition: background 0.2s, transform 0.2s;
 }
 
 .asteroid-item:hover {
@@ -116,4 +110,49 @@
 .sort-btn:hover {
   color: #00ffffee;
   text-shadow: 0 0 4px #00ffff88;
+}
+
+/* Vista dettaglio */
+.asteroid-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  text-align: left;
+  animation: fadeIn 0.3s ease;
+}
+
+.asteroid-data p {
+  margin: 4px 0;
+  font-size: 0.95rem;
+}
+
+/* Pulsanti */
+.hud-btn {
+  background-color: #00ffff;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.hud-btn:hover {
+  background-color: #00dddd;
+  transform: scale(1.05);
+}
+
+.hud-btn.small {
+  width: fit-content;
+  align-self: flex-start;
+  font-size: 0.85rem;
+  padding: 6px;
+}
+
+/* Animazione */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
