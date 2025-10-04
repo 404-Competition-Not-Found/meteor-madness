@@ -20,14 +20,15 @@ const title = document.createElement('h2');
 title.textContent = 'Asteroid Catalog';
 hud.appendChild(title);
 
-// 🔹 Nuova sezione per i filtri (date + pulsante)
 const filters = document.createElement('div');
 filters.className = 'asteroid-filters';
 filters.innerHTML = `
-  <label>Start date:
+  <label>
+    <span>Start date</span>
     <input type="date" id="startDate" />
   </label>
-  <label>End date:
+  <label>
+    <span>End date</span>
     <input type="date" id="endDate" />
   </label>
   <button id="loadAsteroidsBtn" class="hud-btn">Load Asteroids</button>
@@ -35,14 +36,13 @@ filters.innerHTML = `
 hud.appendChild(filters);
 
 // --- Header tabella ---
+// --- Header tabella (semplificato) ---
 const header = document.createElement('div');
 header.className = 'asteroid-header';
 header.innerHTML = `
   <span>Name <span class="sort-btn" data-sort="name">⇅</span></span>
   <span>Diameter <span class="sort-btn" data-sort="diameter">⇅</span></span>
-  <span>Velocity <span class="sort-btn" data-sort="velocity">⇅</span></span>
-  <span>e <span class="sort-btn" data-sort="eccentricity">⇅</span></span>
-  <span>a <span class="sort-btn" data-sort="semiMajor">⇅</span></span>
+  <span>Date <span class="sort-btn" data-sort="date">⇅</span></span>
 `;
 hud.appendChild(header);
 
@@ -88,9 +88,7 @@ function renderAsteroids(list) {
     item.innerHTML = `
       <span>${a.name}</span>
       <span>${a.diameter} m</span>
-      <span>${a.velocity} km/s</span>
-      <span>${a.eccentricity}</span>
-      <span>${a.semiMajor} AU</span>
+      <span>${a.date || '—'}</span>
     `;
     item.addEventListener('click', () => showAsteroidDetails(a));
     asteroidListEl.appendChild(item);
