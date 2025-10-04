@@ -31,7 +31,7 @@ app.get("/asteroids", async (req: any, res: any) => {
 
     const response = await axios.get(`${baseUrl}/neo/rest/v1/feed`,{ params: {
         start_date: startDate, end_date: endDate,
-        detailed: false, api_key: API_KEY
+        detailed: true, api_key: API_KEY
     }});
 
     const data = removeLinks(response.data)
