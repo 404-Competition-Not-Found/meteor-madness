@@ -26,5 +26,4 @@ const craterDepth = 0.3;
 
 addCraterVertexColor(earthMesh, centerDir, craterRadius, craterDepth);
 
-// avvia animazione
-startRenderLoop(scene, camera, renderer, earthMesh);
+startRenderLoop(scene, camera, renderer, earthMesh, asteroidMesh)

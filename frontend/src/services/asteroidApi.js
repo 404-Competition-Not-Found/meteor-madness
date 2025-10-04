@@ -1,4 +1,4 @@
-async function fetchOrbitData() {
+export async function fetchOrbitData() {
   // Simula chiamata API che restituisce il file JSON mock
   const response = await fetch('./orbit-data.json');
   if (!response.ok) throw new Error('Errore nel caricamento dei dati orbitali');
@@ -6,16 +6,19 @@ async function fetchOrbitData() {
   return data;
 }
 
-(async () => {
-  const orbit = await fetchOrbitData("ceres");
-
-  // Esempio: converto gradi → radianti
-  const e = orbit.e;
-  const a = orbit.a;
-  const T = orbit.period;
-  const i = THREE.MathUtils.degToRad(orbit.i);
-  const raan = THREE.MathUtils.degToRad(orbit.raan);
-  const argPeri = THREE.MathUtils.degToRad(orbit.argPeriapsis);
-
-  console.log("Orbita caricata:", { a, e, T, i, raan, argPeri });
-})();
+export async function fetchOrbitData2() {
+  console.log("Sto usando la fetch orbit")
+  // Simula una chiamata API
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        a: 4.0,         // semiasse maggiore
+        e: 0.5,         // eccentricità
+        i: 15,          // inclinazione (°)
+        raan: 60,       // longitudine nodo ascendente (°)
+        argPeriapsis: 40, // argomento del perielio (°)
+        period: 10      // periodo orbitale in secondi
+      });
+    }, 500);
+  });
+}
