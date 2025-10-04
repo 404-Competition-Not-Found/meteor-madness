@@ -1,10 +1,4 @@
-export async function fetchOrbitData() {
-  // Simula chiamata API che restituisce il file JSON mock
-  const response = await fetch('./orbit-data.json');
-  if (!response.ok) throw new Error('Errore nel caricamento dei dati orbitali');
-  const data = await response.json();
-  return data;
-}
+import axios from "axios";
 
 export async function fetchOrbitData2() {
   console.log("Sto usando la fetch orbit");
@@ -22,3 +16,10 @@ export async function fetchOrbitData2() {
     }, 500);
   });
 }
+
+export async function fetchOrbitDataByAsteroidId(id) {
+  const response = await axios.get(`http://localhost:8000/asteroids/${id}`);
+  console.log(response.data)
+  return response.data.orbital_data;
+}
+
