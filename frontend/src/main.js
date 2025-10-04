@@ -5,6 +5,8 @@ import { addCraterVertexColor } from './core/objects/crater.js';
 import { startRenderLoop } from './core/renderer.js';
 import * as THREE from 'three';
 import { createAsteroid } from './core/objects/asteroid.js';
+import { createSun } from './core/objects/sun.js';
+import { createAsteroidLabel } from './core/objects/asteroid.js'
 
 const { scene, camera, renderer } = createScene();
 
@@ -17,6 +19,12 @@ scene.add(spaceMesh);
 const asteroidMesh = createAsteroid();
 scene.add(asteroidMesh);
 
+const sunMesh = createSun();
+scene.add(sunMesh);
+
+const asteroidLabel = createAsteroidLabel('Asteroid');
+scene.add(asteroidLabel);
+
 // centro del cratere (versore)
 const centerDir = new THREE.Vector3(0, 0, 1);
 
@@ -26,4 +34,4 @@ const craterDepth = 0.3;
 
 addCraterVertexColor(earthMesh, centerDir, craterRadius, craterDepth);
 
-startRenderLoop(scene, camera, renderer, earthMesh, asteroidMesh)
+startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh)

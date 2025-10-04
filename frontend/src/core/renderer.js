@@ -23,35 +23,76 @@ function propagateOrbit(t, elements) {
     const y_orb = a * Math.sqrt(1 - e * e) * Math.sin(E);
 
     const pos = new THREE.Vector3(x_orb, y_orb, 0);
-    const rot = new THREE.Euler(
-      THREE.MathUtils.degToRad(i),
-      THREE.MathUtils.degToRad(raan),
-      THREE.MathUtils.degToRad(argPeriapsis),
-      'ZYX'
-    );
-    pos.applyEuler(rot);
+    pos.applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(argPeriapsis)); // argomento del periapside
+    pos.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(raan));         // nodo ascendente
+    pos.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(i));  
 
     return pos;
+}
+
+function createOrbitLine(elements, sunPosition, segments = 200) {
+  const { a, e, i, raan, argPeriapsis } = elements;
+  const points = [];
+
+  for (let j = 0; j <= segments; j++) {
+    const M = (2 * Math.PI * j) / segments;
+    const E = keplerSolve(e, M);
+    const x_orb = a * (Math.cos(E) - e);
+    const y_orb = a * Math.sqrt(1 - e * e) * Math.sin(E);
+
+    const pos = new THREE.Vector3(x_orb, y_orb, 0);
+    
+    // Ruota per inclinazione e orientamento
+    pos.applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(argPeriapsis)); // argomento del periapside
+    pos.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(raan));         // nodo ascendente
+    pos.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(i));  
+
+    // Trasla in base alla posizione del Sole
+    pos.add(sunPosition);
+
+    points.push(pos);
   }
 
-  export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidMesh) {
-    fetchOrbitData2().then((orbitData) => {
-        const controls = new OrbitControls(camera, renderer.domElement);
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.LineBasicMaterial({ color: 0x47e7ff });
+  const line = new THREE.LineLoop(geometry, material); // chiude la linea
+  return line;
+}
+
+function updateLabelScale(sprite, camera) {
+  const distance = sprite.position.distanceTo(camera.position);
+  const scaleFactor = distance * 0.2; // regola 0.2 per dimensione desiderata
+  sprite.scale.set(scaleFactor, scaleFactor * 0.5, 1);
+}
+
+
+export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh) {
+  fetchOrbitData2().then((orbitData) => {
+    const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.minDistance = 2.5;
-    controls.maxDistance = 20;
+    controls.minDistance = 2;
+    controls.maxDistance = 100;
 
     const clock = new THREE.Clock();
+
+    const orbitLine = createOrbitLine(orbitData, sunMesh.position);
+    scene.add(orbitLine);
 
     function animate() {
       const elapsed = clock.getElapsedTime();
       const dt = clock.getDelta();
 
       controls.update();
-
+      
       const pos = propagateOrbit(elapsed, orbitData);
+      pos.add(sunMesh.position); // trasla l'orbita attorno al Sole
       asteroidMesh.position.copy(pos);
+
+      asteroidLabel.position.copy(asteroidMesh.position);
+      asteroidLabel.position.y += 1.5; // solleva sopra l'asteroide
+
+      updateLabelScale(asteroidLabel, camera);
 
       renderer.render(scene, camera);
       requestAnimationFrame(animate);

@@ -7,10 +7,9 @@ export function createEarth() {
   const geometry = new THREE.SphereGeometry(1.5, 64, 64);
   const material = new THREE.MeshStandardMaterial({
     map: texture,
-    normalMap: texture,
-    metalness: 0.0,
-    roughness: 1.0,
-    vertexColors: true,
+    metalness: 0,
+    roughness: 1,
+    vertexColors: true
   });
 
   const mesh = new THREE.Mesh(geometry, material);

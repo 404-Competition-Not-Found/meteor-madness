@@ -7,17 +7,17 @@ export async function fetchOrbitData() {
 }
 
 export async function fetchOrbitData2() {
-  console.log("Sto usando la fetch orbit")
+  console.log("Sto usando la fetch orbit");
   // Simula una chiamata API
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
-        a: 4.0,         // semiasse maggiore
-        e: 0.5,         // eccentricità
-        i: 15,          // inclinazione (°)
-        raan: 60,       // longitudine nodo ascendente (°)
-        argPeriapsis: 40, // argomento del perielio (°)
-        period: 10      // periodo orbitale in secondi
+        a: 30,       // semiasse maggiore (distanza media Sole→asteroide)
+        e: 0.6,      // eccentricità: periapside vicino alla Terra
+        i: 45,        // inclinazione in gradi
+        raan: 0,
+        argPeriapsis: 180, // periapside dalla parte opposta rispetto al Sole
+        period: 5   // periodo orbitale in secondi
       });
     }, 500);
   });
