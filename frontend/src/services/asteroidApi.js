@@ -17,7 +17,7 @@ export async function fetchOrbitData2() {
         i: 45,        // inclinazione in gradi
         raan: 0,
         argPeriapsis: 180, // periapside dalla parte opposta rispetto al Sole
-        period: 5   // periodo orbitale in secondi
+        period: 20   // periodo orbitale in secondi
       });
     }, 500);
   });

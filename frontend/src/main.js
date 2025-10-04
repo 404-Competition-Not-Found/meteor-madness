@@ -10,12 +10,6 @@ import { createAsteroidLabel } from './core/objects/asteroid.js'
 
 const { scene, camera, renderer } = createScene();
 
-createSatellite().then((satellite) => {
-  scene.add(satellite);
-}).catch((err) => {
-  console.error(err);
-});
-
 const earthMesh = createEarth();
 scene.add(earthMesh);
 
@@ -31,13 +25,9 @@ scene.add(sunMesh);
 const asteroidLabel = createAsteroidLabel('Asteroid');
 scene.add(asteroidLabel);
 
-// centro del cratere (versore)
-const centerDir = new THREE.Vector3(0, 0, 1);
-
-// raggio e profondità del cratere
-const craterRadius = 0.8;
-const craterDepth = 0.3;
-
-addCraterVertexColor(earthMesh, centerDir, craterRadius, craterDepth);
-
-startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh)
+createSatellite().then((satelliteMesh) => {
+  scene.add(satelliteMesh);
+  startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh);
+}).catch((err) => {
+  console.error(err);
+});

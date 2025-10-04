@@ -14,6 +14,24 @@ function keplerSolve(e, M) {
   return E;
 }
 
+function checkAsteroidSatelliteCollision(asteroidMesh, asteroidRadius, satelliteMesh) {
+  // bounding box del satellite
+  const satelliteBox = new THREE.Box3().setFromObject(satelliteMesh);
+
+  // centro della sfera = posizione dell'asteroide
+  const center = asteroidMesh.position;
+
+  // troviamo il punto più vicino della box al centro della sfera
+  const closestPoint = new THREE.Vector3();
+  satelliteBox.clampPoint(center, closestPoint);
+
+  // distanza tra centro sfera e punto più vicino della box
+  const distance = center.distanceTo(closestPoint);
+
+  // collisione se distanza < raggio
+  return distance < asteroidRadius;
+}
+
 function propagateOrbit(t, elements) {
     const { a, e, i, raan, argPeriapsis, period } = elements;
     const n = (2 * Math.PI) / period;
@@ -40,7 +58,6 @@ function createOrbitLine(elements, sunPosition, segments = 200) {
     const E = keplerSolve(e, M);
     const x_orb = a * (Math.cos(E) - e);
     const y_orb = a * Math.sqrt(1 - e * e) * Math.sin(E);
-
     const pos = new THREE.Vector3(x_orb, y_orb, 0);
     
     // Ruota per inclinazione e orientamento
@@ -50,7 +67,6 @@ function createOrbitLine(elements, sunPosition, segments = 200) {
 
     // Trasla in base alla posizione del Sole
     pos.add(sunPosition);
-
     points.push(pos);
   }
 
@@ -66,7 +82,7 @@ function updateLabelScale(sprite, camera) {
   sprite.scale.set(scaleFactor, scaleFactor * 0.5, 1);
 }
 
-export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh) {
+export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh) {
   fetchOrbitData2().then((orbitData) =>{
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -93,9 +109,14 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
       const dt = clock.getDelta();
       asteroidMesh.position.x += 0.5 * dt; // movimento verso la Terra
 
-      const distance = earthMesh.position.distanceTo(asteroidMesh.position);
+      const earthAsteroidDistance = earthMesh.position.distanceTo(asteroidMesh.position);
 
-      if (!asteroidRemoved && distance <= vanishDist) {
+      if (checkAsteroidSatelliteCollision(asteroidMesh, asteroidRadius, satelliteMesh)) {
+        console.log('Collisione asteroide / satellite rilevata!');
+        // qui puoi aggiungere effetti, rimuovere oggetti, ecc.
+      }
+
+      if (!asteroidRemoved && earthAsteroidDistance <= vanishDist) {
         console.log('🌀 L’asteroide è per 1/3 dentro la Terra → creo cratere e rimuovo');
 
         const centerDir = new THREE.Vector3()

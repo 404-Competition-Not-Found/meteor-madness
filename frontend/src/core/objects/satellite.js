@@ -13,7 +13,18 @@ export function createSatellite() {
 
         // scala e posizione iniziale
         satellite.scale.set(0.01, 0.09, 0.09);
-        satellite.position.set(5, 0, 0);
+        satellite.position.set(-5, 0, 0);
+
+        satellite.traverse((child) => {
+            if (child.isMesh) {
+                const edges = new THREE.EdgesGeometry(child.geometry);
+                const line = new THREE.LineSegments(
+                edges,
+                new THREE.LineBasicMaterial({ color: 0xffffff })
+                );
+                child.add(line);
+            }
+        });
 
         resolve(satellite); // risolve la Promise con il modello
       },
