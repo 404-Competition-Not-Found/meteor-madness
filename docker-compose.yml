@@ -1,0 +1,34 @@
+#! docker-compose automatically loads environment variables from .env files
+
+## ==== NETWORKS ============================================================ ##
+## Defines the custom networks to be created and used by the services.
+networks:
+  meteor-madness-network:
+    # IP Address Management settings: default driver, subnet in CIDR format.
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.0.0/16
+
+
+## ==== SERVICES ============================================================ ##
+## Defines the services (containers) that make up the application.
+## Service names ar arbitrary and used for automatic container name generation.
+## Service names are used for DNS resolution inside the Docker private network.
+services:
+
+    # ==== PYTHON ============================================================ #
+    be-python:
+         image: be-python:latest
+         volumes:
+          - ./be-python/src:/app
+         build:
+             context: ./be-python
+             dockerfile: Dockerfile
+         ports:
+             - "8002:8000"
+         networks:
+             - meteor-madness-network
+
+volumes:
+    mariadb_data:
