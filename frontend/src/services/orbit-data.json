@@ -1,0 +1,23 @@
+{
+  "id": "ceres",
+  "name": "Asteroid Ceres",
+  "epoch": "2025-10-04T00:00:00Z",
+  "elements": {
+    "a": 2.77,
+    "e": 0.075,
+    "i": 10.6,
+    "raan": 80.3,
+    "argPeriapsis": 73.5,
+    "meanAnomaly": 50.1,
+    "period": 1681.6,
+    "tau": 0
+  },
+  "centralBody": {
+    "name": "Sun",
+    "mass": 1.9885e30
+  },
+  "metadata": {
+    "source": "mock",
+    "generated_at": "2025-10-04T12:00:00Z"
+  }
+}
