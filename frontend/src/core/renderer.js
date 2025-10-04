@@ -1,5 +1,6 @@
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as THREE from 'three';
+import { fetchOrbitDataByAsteroidId } from '../services/asteroidApi.js';
 import { fetchOrbitData2 } from '../services/asteroidApi.js';
 import { addCraterVertexColor } from './objects/crater.js';
 import { createExplosion, updateExplosion } from './effects/explosion.js';
@@ -51,12 +52,14 @@ function propagateOrbit(t, elements) {
 
 function createOrbitLine(elements, sunPosition, segments = 200) {
   const { a, e, i, raan, argPeriapsis } = elements;
+  console.log("a -> " + a)
   const points = [];
 
   for (let j = 0; j <= segments; j++) {
     const M = (2 * Math.PI * j) / segments;
     const E = keplerSolve(e, M);
     const x_orb = a * (Math.cos(E) - e);
+    console.log("x_orb ->" + x_orb)
     const y_orb = a * Math.sqrt(1 - e * e) * Math.sin(E);
     const pos = new THREE.Vector3(x_orb, y_orb, 0);
     
@@ -83,7 +86,7 @@ function updateLabelScale(sprite, camera) {
 }
 
 export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh) {
-  fetchOrbitData2().then((orbitData) =>{
+  fetchOrbitDataByAsteroidId(3427459).then((orbitData) =>{
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
