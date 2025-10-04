@@ -27,12 +27,14 @@ app.get('/', (_req: any, res: any) => {
 app.get("/asteroids", async (req: any, res: any) => {
     const startDate = req.query["start_date"] || "2025-10-04";
     const endDate = req.query["end_date"] || "2025-10-11";
-    if(!startDate || !endDate) return res.status(400).send();
+    if (!startDate || !endDate) return res.status(400).send();
 
-    const response = await axios.get(`${baseUrl}/neo/rest/v1/feed`,{ params: {
-        start_date: startDate, end_date: endDate,
-        detailed: false, api_key: API_KEY
-    }});
+    const response = await axios.get(`${baseUrl}/neo/rest/v1/feed`, {
+        params: {
+            start_date: startDate, end_date: endDate,
+            detailed: false, api_key: API_KEY
+        }
+    });
 
     const data = removeLinks(response.data)
 
@@ -46,11 +48,11 @@ app.get("/asteroids", async (req: any, res: any) => {
     result = result.map((obj: any) => {
         const km = obj.estimated_diameter?.kilometers;
         if (km && typeof km.estimated_diameter_min === 'number' && typeof km.estimated_diameter_max === 'number') {
-        const avgDiameter = (km.estimated_diameter_min + km.estimated_diameter_max) / 2;
-        return {
-            ...obj,
-            estimated_diameter: avgDiameter
-        };
+            const avgDiameter = (km.estimated_diameter_min + km.estimated_diameter_max) / 2;
+            return {
+                ...obj,
+                estimated_diameter: avgDiameter
+            };
         }
         // If no diameter info, just return the object as is
         return obj;
@@ -76,13 +78,28 @@ app.get("/asteroids", async (req: any, res: any) => {
 
 app.get("/asteroids/:id", async (req: any, res: any) => {
     const id = req.params["id"];
-    if(!id) return res.status(400).send();
+    if (!id) return res.status(400).send();
 
-    const response = await axios.get(`${baseUrl}/neo/rest/v1/neo/${id}`,{ params: {
-        api_key: API_KEY
-    }});
+    const data: any = (await axios.get(`${baseUrl}/neo/rest/v1/neo/${id}`, {
+        params: {
+            api_key: API_KEY
+        }
+    })).data;
 
-    res.send(removeLinks(response.data));
+    [
+        'semi_major_axis',
+        'eccentricity',
+        'inclination',
+        'ascending_node_longitude',
+        'perihelion_argument',
+        'orbital_period'
+    ].forEach(key => {
+        if (data.orbital_data[key] !== undefined) {
+            data.orbital_data[key] = parseFloat(data.orbital_data[key]);
+        }
+    });
+
+    res.send(removeLinks(data));
 })
 
 /** Calculate new asteroid semi major axis so that it impacts the earth at the
@@ -130,50 +147,50 @@ server.listen(PORT, () => {
 /** Calculates the new semiaxis for the asteroid orbit so that it
  *  intersects the earth. */
 function reverse(e: number, theta: number, x: number, y: number) {
-    const P = x*Math.cos(theta)+y*Math.sin(theta);
-    const Q =-x*Math.sin(theta)+y*Math.cos(theta);
-    const alpha = (e**2)*((1-e**2)*(1-Math.cos(theta))**2+(Math.sin(theta))**2)-(1-e**2);
-    const beta = 2*e*((1-e**2)*P*(1-Math.cos(theta))+Q*Math.sin(theta));
-    const gamma =(1-e**2)*P**2+Q**2;
+    const P = x * Math.cos(theta) + y * Math.sin(theta);
+    const Q = -x * Math.sin(theta) + y * Math.cos(theta);
+    const alpha = (e ** 2) * ((1 - e ** 2) * (1 - Math.cos(theta)) ** 2 + (Math.sin(theta)) ** 2) - (1 - e ** 2);
+    const beta = 2 * e * ((1 - e ** 2) * P * (1 - Math.cos(theta)) + Q * Math.sin(theta));
+    const gamma = (1 - e ** 2) * P ** 2 + Q ** 2;
 
-    return (-beta+Math.sqrt(beta**2-4*alpha*gamma))/(2*alpha)
+    return (-beta + Math.sqrt(beta ** 2 - 4 * alpha * gamma)) / (2 * alpha)
 }
 
-const SOLAR_MASS = 1.988416*10**30
-const GRAVITATIONAL_CONSTANT = 6.67*10**-11
+const SOLAR_MASS = 1.988416 * 10 ** 30
+const GRAVITATIONAL_CONSTANT = 6.67 * 10 ** -11
 function initialMeteorVelocity(x: number, y: number, semi_major_axis: number) {
-    const meteor_sun_distance = Math.sqrt(x**2+y**2);
-    return Math.sqrt(SOLAR_MASS*GRAVITATIONAL_CONSTANT*((2/meteor_sun_distance)-(1/semi_major_axis)))
+    const meteor_sun_distance = Math.sqrt(x ** 2 + y ** 2);
+    return Math.sqrt(SOLAR_MASS * GRAVITATIONAL_CONSTANT * ((2 / meteor_sun_distance) - (1 / semi_major_axis)))
 }
 
 const SOLAR_MASS2 = new Decimal('1.988416e30');
 const GRAVITATIONAL_CONSTANT2 = new Decimal('6.67e-11');
 function initialMeteorVelocity2(_x: number, _y: number, _semi_major_axis: number) {
-  const x = new Decimal(_x);
-  const y = new Decimal(_y);
-  const semi_major_axis = new Decimal(_semi_major_axis);
+    const x = new Decimal(_x);
+    const y = new Decimal(_y);
+    const semi_major_axis = new Decimal(_semi_major_axis);
 
-  const r = x.pow(2).plus(y.pow(2)).sqrt();
-  const term = new Decimal(2).div(r).minus(new Decimal(1).div(semi_major_axis));
-  const result = SOLAR_MASS2.times(GRAVITATIONAL_CONSTANT2).times(term).sqrt();
+    const r = x.pow(2).plus(y.pow(2)).sqrt();
+    const term = new Decimal(2).div(r).minus(new Decimal(1).div(semi_major_axis));
+    const result = SOLAR_MASS2.times(GRAVITATIONAL_CONSTANT2).times(term).sqrt();
 
-  return result;
+    return result;
 }
 
 /* ==== UTILS =============================================================== */
 /** Removes the "links" key recursively from a JSON object. */
 function removeLinks(obj: any): any {
-  if (Array.isArray(obj)) {
-    return obj.map(removeLinks);
-  } else if (obj !== null && typeof obj === 'object') {
-    const result: any = {};
-    for (const key in obj) {
-      if (key !== 'links') {
-        result[key] = removeLinks(obj[key]);
-      }
+    if (Array.isArray(obj)) {
+        return obj.map(removeLinks);
+    } else if (obj !== null && typeof obj === 'object') {
+        const result: any = {};
+        for (const key in obj) {
+            if (key !== 'links') {
+                result[key] = removeLinks(obj[key]);
+            }
+        }
+        return result;
+    } else {
+        return obj;
     }
-    return result;
-  } else {
-    return obj;
-  }
 }
