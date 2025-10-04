@@ -34,8 +34,6 @@ export function addCraterVertexColor(earthMesh, centerDir, craterRadius, craterD
         vertex.addScaledVector(vertex.clone().normalize(), -craterDepth * factor);
         posAttr.setXYZ(i, vertex.x, vertex.y, vertex.z);
 
-        
-
         if (angle < craterRadius / radiusSphere) {
             const factor = 1 - angle / (craterRadius / radiusSphere);
 

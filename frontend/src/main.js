@@ -4,6 +4,7 @@ import { createSpace } from './core/objects/space.js';
 import { addCraterVertexColor } from './core/objects/crater.js';
 import { startRenderLoop } from './core/renderer.js';
 import * as THREE from 'three';
+import { createAsteroid } from './core/objects/asteroid.js';
 
 const { scene, camera, renderer } = createScene();
 
@@ -12,6 +13,9 @@ scene.add(earthMesh);
 
 const spaceMesh = createSpace();
 scene.add(spaceMesh);
+
+const asteroidMesh = createAsteroid();
+scene.add(asteroidMesh);
 
 // centro del cratere (versore)
 const centerDir = new THREE.Vector3(0, 0, 1);

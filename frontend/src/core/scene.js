@@ -23,8 +23,8 @@ export function createScene() {
   const ambient = new THREE.AmbientLight(0xffffff, 0.4);
   scene.add(ambient);
 
-  const sun = new THREE.DirectionalLight(0xffffff, 1);
-  sun.position.set(5, 3, 5);
+  const sun = new THREE.DirectionalLight(0xffffff, 5);
+  sun.position.set(15, 3, 15);
   scene.add(sun);
 
   // Resize
