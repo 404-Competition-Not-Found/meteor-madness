@@ -8,7 +8,7 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.30.0.0/16
+        - subnet: 172.31.0.0/16
 
 
 ## ==== SERVICES ============================================================ ##
@@ -17,17 +17,20 @@ networks:
 ## Service names are used for DNS resolution inside the Docker private network.
 services:
 
-    # ==== PYTHON ============================================================ #
-    be-python:
-         image: be-python:latest
-         volumes:
-          - ./be-python/src:/app
-         build:
-             context: ./be-python
-             dockerfile: Dockerfile
-         ports:
-             - "8002:8000"
-         networks:
+    # ==== NODE ============================================================== #
+    be-node:
+        container_name: be-node
+        image: be-node:latest
+
+        # Build image from Dockerfile in the current directory and override its CMD.
+        build:
+            context: ./be-node
+            dockerfile: Dockerfile
+        command: npm run start
+
+        ports:
+            - "8001:8000"
+        networks:
              - meteor-madness-network
 
 volumes:
