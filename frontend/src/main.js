@@ -20,6 +20,21 @@ const title = document.createElement('h2');
 title.textContent = 'Asteroid Catalog';
 hud.appendChild(title);
 
+// 🔹 Nuova sezione per i filtri (date + pulsante)
+const filters = document.createElement('div');
+filters.className = 'asteroid-filters';
+filters.innerHTML = `
+  <label>Start date:
+    <input type="date" id="startDate" />
+  </label>
+  <label>End date:
+    <input type="date" id="endDate" />
+  </label>
+  <button id="loadAsteroidsBtn" class="hud-btn">Load Asteroids</button>
+`;
+hud.appendChild(filters);
+
+// --- Header tabella ---
 const header = document.createElement('div');
 header.className = 'asteroid-header';
 header.innerHTML = `
@@ -36,7 +51,7 @@ asteroidListEl.id = 'asteroidList';
 asteroidListEl.className = 'asteroid-list';
 hud.appendChild(asteroidListEl);
 
-// Toggle button
+// Toggle HUD
 const hudToggle = document.createElement('div');
 hudToggle.id = 'hudToggle';
 hudToggle.textContent = '≡';
@@ -49,13 +64,22 @@ hudToggle.addEventListener('click', () => {
   hudToggle.style.right = hudOpen ? '350px' : '0px';
 });
 
-// --- Popola lista con mock API ---
+// --- Stato asteroidi ---
 let asteroids = [];
-async function loadAsteroids() {
-  asteroids = await getAsteroids();
-  renderAsteroids(asteroids);
+
+// 🔹 Funzione per caricare asteroidi da API
+async function loadAsteroids(startDate, endDate) {
+  try {
+    asteroidListEl.innerHTML = '<p>Loading...</p>';
+    asteroids = await getAsteroids(startDate, endDate);
+    renderAsteroids(asteroids);
+  } catch (error) {
+    console.error('Errore durante il caricamento degli asteroidi:', error);
+    asteroidListEl.innerHTML = `<p class="error">Error loading asteroids.</p>`;
+  }
 }
 
+// --- Rendering lista ---
 function renderAsteroids(list) {
   asteroidListEl.innerHTML = '';
   list.forEach(a => {
@@ -73,7 +97,7 @@ function renderAsteroids(list) {
   });
 }
 
-// --- Vista dettagliata di un singolo asteroide ---
+// --- Dettagli asteroide ---
 function showAsteroidDetails(asteroid) {
   hud.innerHTML = `
     <div class="asteroid-detail">
@@ -91,15 +115,15 @@ function showAsteroidDetails(asteroid) {
   `;
 
   document.getElementById('backToList').addEventListener('click', () => {
-    hud.innerHTML = ''; // ricostruisci la lista
+    hud.innerHTML = '';
     hud.appendChild(title);
+    hud.appendChild(filters);
     hud.appendChild(header);
     hud.appendChild(asteroidListEl);
   });
 
   document.getElementById('startSimBtn').addEventListener('click', () => {
     console.log(`Starting simulation for ${asteroid.name}...`);
-    // qui puoi inserire la tua funzione di simulazione
   });
 }
 
@@ -107,13 +131,29 @@ function showAsteroidDetails(asteroid) {
 hud.querySelectorAll('.sort-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const key = btn.dataset.sort;
-    asteroids.sort((a,b) => typeof a[key] === 'string' ? a[key].localeCompare(b[key]) : a[key]-b[key]);
+    asteroids.sort((a,b) =>
+      typeof a[key] === 'string'
+        ? a[key].localeCompare(b[key])
+        : a[key] - b[key]
+    );
     renderAsteroids(asteroids);
   });
 });
 
-loadAsteroids();
+// 🔹 Event listener per il pulsante “Load Asteroids”
+document.getElementById('loadAsteroidsBtn').addEventListener('click', () => {
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
 
+  if (!start || !end) {
+    alert('Please select both start and end dates.');
+    return;
+  }
+
+  loadAsteroids(start, end);
+});
+
+// --- Setup scena 3D ---
 const earthMesh = createEarth();
 scene.add(earthMesh);
 
