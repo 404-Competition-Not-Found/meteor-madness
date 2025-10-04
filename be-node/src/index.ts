@@ -1,8 +1,8 @@
 import express from 'express';
 import http from 'http';
-import multer from "multer";
 import cors from 'cors';
 import axios from "axios";
+import Decimal from 'decimal.js';
 
 const PORT = 8000;
 const app = express();
@@ -52,29 +52,44 @@ app.get("/asteroids", async (req: any, res: any) => {
     */
 })
 
-/** Retrieve asteroid details by id. */
-app.post("/simulate", async (req: any, res: any) => {
-    const { eccentricity, theta, point } = req.body || {};
+app.get("/asteroids/:id", async (req: any, res: any) => {
+    const id = req.params["id"];
+    if(!id) return res.status(400).send();
+
+    const response = await axios.get(`${baseUrl}/neo/rest/v1/neo/${id}`,{ params: {
+        api_key: API_KEY
+    }});
+
+    res.send(removeLinks(response.data));
+})
+
+/** Calculate new asteroid semi major axis so that it impacts the earth at the
+ *  given coordinates. */
+app.post("/simulate/trajectory", async (req: any, res: any) => {
+    const { eccentricity, ascending_node_longitude, point } = req.body || {};
 
     if (
-        typeof eccentricity !== 'number' || typeof theta !== 'number' ||
+        typeof eccentricity !== 'number' || typeof ascending_node_longitude !== 'number' ||
         !point || typeof point.x !== 'number' || typeof point.y !== 'number'
     ) return res.status(400).send()
 
-    // TODO: calculate new orbital period
-
-    res.send({ orbital_period: reverse(eccentricity, theta, point.x, point.y) });
+    res.send({ semi_major_axis: reverse(eccentricity, ascending_node_longitude, point.x, point.y) });
 })
 
-function reverse(e: number, theta: number, x: number, y: number) {
-    const P = x*Math.cos(theta)+y*Math.sin(theta);
-    const Q =-x*Math.sin(theta)+y*Math.cos(theta);
-    const alpha = (e^2)*((1-e^2)*(1-Math.cos(theta))^2+(Math.sin(theta))^2)-(1-e^2);
-    const beta = 2*e*((1-e^2)*P*(1-Math.cos(theta))+Q*Math.sin(theta));
-    const gamma =(1-e^2)*P^2+Q^2;
+/** Calculate damage data of the impact of the asteroid on the earth. */
+app.post("/simulate/impact", async (req: any, res: any) => {
+    // TODO: calcolare:
+    //  velocità iniziale dell'asteroide
+    //  massa persa nell'atmosfera
+    //  velocità persa nell'atmosfera
+    //  energia cinetica dell'asteroide -> grand gratere, materiale disperso, shockwave, airburst, tsunami
 
-    return (Math.sqrt(beta^2-4*alpha*gamma)-beta)/(2*alpha)
-}
+    // TODO: mock dati impatto
+
+    res.send({
+        crater_radius: 10
+    });
+})
 
 /* ==== LISTEN ============================================================== */
 server.listen(PORT, () => {
@@ -82,7 +97,42 @@ server.listen(PORT, () => {
 });
 
 
+/* ==== CALCULATIONS ======================================================== */
+/** Calculates the new semiaxis for the asteroid orbit so that it
+ *  intersects the earth. */
+function reverse(e: number, theta: number, x: number, y: number) {
+    const P = x*Math.cos(theta)+y*Math.sin(theta);
+    const Q =-x*Math.sin(theta)+y*Math.cos(theta);
+    const alpha = (e**2)*((1-e**2)*(1-Math.cos(theta))**2+(Math.sin(theta))**2)-(1-e**2);
+    const beta = 2*e*((1-e**2)*P*(1-Math.cos(theta))+Q*Math.sin(theta));
+    const gamma =(1-e**2)*P**2+Q**2;
+
+    return (-beta+Math.sqrt(beta**2-4*alpha*gamma))/(2*alpha)
+}
+
+const SOLAR_MASS = 1.988416*10**30
+const GRAVITATIONAL_CONSTANT = 6.67*10**-11
+function initialMeteorVelocity(x: number, y: number, semi_major_axis: number) {
+    const meteor_sun_distance = Math.sqrt(x**2+y**2);
+    return Math.sqrt(SOLAR_MASS*GRAVITATIONAL_CONSTANT*((2/meteor_sun_distance)-(1/semi_major_axis)))
+}
+
+const SOLAR_MASS2 = new Decimal('1.988416e30');
+const GRAVITATIONAL_CONSTANT2 = new Decimal('6.67e-11');
+function initialMeteorVelocity2(_x: number, _y: number, _semi_major_axis: number) {
+  const x = new Decimal(_x);
+  const y = new Decimal(_y);
+  const semi_major_axis = new Decimal(_semi_major_axis);
+
+  const r = x.pow(2).plus(y.pow(2)).sqrt();
+  const term = new Decimal(2).div(r).minus(new Decimal(1).div(semi_major_axis));
+  const result = SOLAR_MASS2.times(GRAVITATIONAL_CONSTANT2).times(term).sqrt();
+
+  return result.toString();
+}
+
 /* ==== UTILS =============================================================== */
+/** Removes the "links" key recursively from a JSON object. */
 function removeLinks(obj: any): any {
   if (Array.isArray(obj)) {
     return obj.map(removeLinks);
