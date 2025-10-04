@@ -11,6 +11,12 @@ export function createEarth() {
     roughness: 1,
     vertexColors: true
   });
+  
+  const colors = [];
+  for (let i = 0; i < geometry.attributes.position.count; i++) {
+    colors.push(1, 1, 1); // bianco → non altera la texture
+  }
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
   const mesh = new THREE.Mesh(geometry, material);
   return mesh;

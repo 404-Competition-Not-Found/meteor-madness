@@ -1,7 +1,8 @@
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as THREE from 'three';
 import { fetchOrbitData2 } from '../services/asteroidApi.js';
-
+import { addCraterVertexColor } from './objects/crater.js';
+import { createExplosion, updateExplosion } from './effects/explosion.js';
 
 function keplerSolve(e, M) {
   let E = M;
@@ -65,16 +66,24 @@ function updateLabelScale(sprite, camera) {
   sprite.scale.set(scaleFactor, scaleFactor * 0.5, 1);
 }
 
-
 export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh) {
-  fetchOrbitData2().then((orbitData) => {
+  fetchOrbitData2().then((orbitData) =>{
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
     controls.minDistance = 2;
     controls.maxDistance = 100;
 
+    const earthRadius = earthMesh.geometry.parameters.radius;
+    const asteroidRadius = asteroidMesh.geometry.parameters.radius;
+
+    const vanishDist = (earthRadius + asteroidRadius) - (asteroidRadius / 2);
+
     const clock = new THREE.Clock();
+
+    let asteroidRemoved = false;
+
+    let explosionParticles = null;
 
     const orbitLine = createOrbitLine(orbitData, sunMesh.position);
     scene.add(orbitLine);
@@ -82,9 +91,30 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
     function animate() {
       const elapsed = clock.getElapsedTime();
       const dt = clock.getDelta();
+      asteroidMesh.position.x += 0.5 * dt; // movimento verso la Terra
+
+      const distance = earthMesh.position.distanceTo(asteroidMesh.position);
+
+      if (!asteroidRemoved && distance <= vanishDist) {
+        console.log('🌀 L’asteroide è per 1/3 dentro la Terra → creo cratere e rimuovo');
+
+        const centerDir = new THREE.Vector3()
+          .subVectors(asteroidMesh.position, earthMesh.position)
+          .normalize();
+
+        const craterRadius = asteroidRadius * 1.2; 
+        const craterDepth = asteroidRadius * 0.4;  
+
+        addCraterVertexColor(earthMesh, centerDir, craterRadius, craterDepth);
+
+        explosionParticles = createExplosion(scene, asteroidMesh.position.clone());
+        scene.remove(asteroidMesh);
+        asteroidRemoved = true;
+      }
+
+      if (explosionParticles) updateExplosion(explosionParticles, dt);
 
       controls.update();
-      
       const pos = propagateOrbit(elapsed, orbitData);
       pos.add(sunMesh.position); // trasla l'orbita attorno al Sole
       asteroidMesh.position.copy(pos);
