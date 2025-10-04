@@ -10,7 +10,7 @@ export function createScene() {
     0.1,
     1000
   );
-  camera.position.set(0, 2, 6);
+  camera.position.set(0, 5, 20);
 
   // Renderer
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -19,13 +19,9 @@ export function createScene() {
   document.body.style.margin = '0';
   document.body.appendChild(renderer.domElement);
 
-  // Luci
-  const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+  // 🔹 AmbientLight minimale (solo leggero fill)
+  const ambient = new THREE.AmbientLight(0xffffff, 0.05);
   scene.add(ambient);
-
-  const sun = new THREE.DirectionalLight(0xffffff, 5);
-  sun.position.set(15, 3, 15);
-  scene.add(sun);
 
   // Resize
   window.addEventListener('resize', () => {

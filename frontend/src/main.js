@@ -1,27 +1,15 @@
 import { createScene } from './core/scene.js';
 import { createEarth } from './core/objects/earth.js';
 import { createSpace } from './core/objects/space.js';
-import { addCraterVertexColor } from './core/objects/crater.js';
+import { createSatellite } from './core/objects/satellite.js';
 import { startRenderLoop } from './core/renderer.js';
 import { createAsteroid } from './core/objects/asteroid.js';
 import { getAsteroids } from '../src/services/api.js';
 import * as THREE from 'three';
+import { createSun } from './core/objects/sun.js';
+import { createAsteroidLabel } from './core/objects/asteroid.js';
 
 const { scene, camera, renderer } = createScene();
-
-const earthMesh = createEarth();
-scene.add(earthMesh);
-
-const spaceMesh = createSpace();
-scene.add(spaceMesh);
-
-const asteroidMesh = createAsteroid();
-scene.add(asteroidMesh);
-
-const centerDir = new THREE.Vector3(0, 0, 1);
-const craterRadius = 0.8;
-const craterDepth = 0.3;
-addCraterVertexColor(earthMesh, centerDir, craterRadius, craterDepth);
 
 // --- HUD ---
 const hud = document.createElement('div');
@@ -126,5 +114,24 @@ hud.querySelectorAll('.sort-btn').forEach(btn => {
 
 loadAsteroids();
 
-// --- Animazione ---
-startRenderLoop(scene, camera, renderer, earthMesh);
+const earthMesh = createEarth();
+scene.add(earthMesh);
+
+const spaceMesh = createSpace();
+scene.add(spaceMesh);
+
+const asteroidMesh = createAsteroid();
+scene.add(asteroidMesh);
+
+const sunMesh = createSun();
+scene.add(sunMesh);
+
+const asteroidLabel = createAsteroidLabel('Asteroid');
+scene.add(asteroidLabel);
+
+createSatellite().then((satelliteMesh) => {
+  scene.add(satelliteMesh);
+  startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh);
+}).catch((err) => {
+  console.error(err);
+});
