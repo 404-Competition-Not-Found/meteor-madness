@@ -1,0 +1,158 @@
+/* HUD principale */
+#hud {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100%;
+  background: rgba(10,10,30,0.5);
+  border-left: 2px solid #00ffff;
+  box-shadow: -5px 0 20px rgba(0, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  overflow-y: auto;
+  z-index: 10;
+  font-family: 'Roboto', sans-serif;
+  color: #ffffff;
+  backdrop-filter: blur(4px);
+  transform: translateX(0);
+  transition: transform 0.35s ease-in-out, box-shadow 0.3s;
+}
+
+/* Stato chiuso */
+#hud.closed {
+  transform: translateX(100%);
+}
+
+/* Toggle */
+#hudToggle {
+  position: absolute;
+  top: 50%;
+  right: 350px;
+  width: 40px;
+  height: 40px;
+  background-color: #00ffff;
+  color: #000;
+  font-weight: bold;
+  border-radius: 6px 0 0 6px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: translateY(-50%);
+  box-shadow: 0 0 12px rgba(0,255,255,0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 15;
+}
+
+#hudToggle:hover {
+  box-shadow: 0 0 20px rgba(0,255,255,0.7);
+}
+
+/* Titolo */
+#hud h2 {
+  text-align: center;
+  color: #00ffff;
+  margin-bottom: 15px;
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: 1px;
+}
+
+/* Header tabella */
+.asteroid-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 10px;
+  font-weight: 600;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+  background-color: rgba(0,255,255,0.05);
+  border-radius: 6px;
+  color: #00ffffdd;
+  font-size: 0.9rem;
+}
+
+/* Lista asteroidi */
+.asteroid-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Elemento asteroide */
+.asteroid-item {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  background: rgba(0,255,255,0.05);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.asteroid-item:hover {
+  background-color: rgba(0,255,255,0.15);
+  transform: translateX(2px);
+}
+
+/* Pulsanti di ordinamento */
+.sort-btn {
+  cursor: pointer;
+  color: #00ffff;
+  font-size: 0.85rem;
+  transition: color 0.2s, text-shadow 0.2s;
+}
+
+.sort-btn:hover {
+  color: #00ffffee;
+  text-shadow: 0 0 4px #00ffff88;
+}
+
+/* Vista dettaglio */
+.asteroid-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  text-align: left;
+  animation: fadeIn 0.3s ease;
+}
+
+.asteroid-data p {
+  margin: 4px 0;
+  font-size: 0.95rem;
+}
+
+/* Pulsanti */
+.hud-btn {
+  background-color: #00ffff;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.hud-btn:hover {
+  background-color: #00dddd;
+  transform: scale(1.05);
+}
+
+.hud-btn.small {
+  width: fit-content;
+  align-self: flex-start;
+  font-size: 0.85rem;
+  padding: 6px;
+}
+
+/* Animazione */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
