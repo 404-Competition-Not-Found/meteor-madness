@@ -34,7 +34,16 @@ app.get("/asteroids", async (req: any, res: any) => {
         detailed: false, api_key: API_KEY
     }});
 
-    res.send(removeLinks(response.data));
+    const data = removeLinks(response.data)
+
+    const result: any = [];
+    for (const [date, objects] of Object.entries(data.near_earth_objects) as any) {
+        objects.forEach((obj: any) => {
+            result.push({ ...obj, date });
+        });
+    }
+
+    res.send(result);
 
     /*
     const neoData = data.near_earth_objects;
@@ -67,7 +76,6 @@ app.get("/asteroids/:id", async (req: any, res: any) => {
  *  given coordinates. */
 app.post("/simulate/trajectory", async (req: any, res: any) => {
     const { eccentricity, ascending_node_longitude, point } = req.body || {};
-
     if (
         typeof eccentricity !== 'number' || typeof ascending_node_longitude !== 'number' ||
         !point || typeof point.x !== 'number' || typeof point.y !== 'number'
@@ -78,6 +86,12 @@ app.post("/simulate/trajectory", async (req: any, res: any) => {
 
 /** Calculate damage data of the impact of the asteroid on the earth. */
 app.post("/simulate/impact", async (req: any, res: any) => {
+    const { point, semi_major_axis } = req.body || {};
+    if (
+        typeof semi_major_axis !== 'number' ||
+        !point || typeof point.x !== 'number' || typeof point.y !== 'number'
+    ) return res.status(400).send()
+
     // TODO: calcolare:
     //  velocità iniziale dell'asteroide
     //  massa persa nell'atmosfera
@@ -85,11 +99,13 @@ app.post("/simulate/impact", async (req: any, res: any) => {
     //  energia cinetica dell'asteroide -> grand gratere, materiale disperso, shockwave, airburst, tsunami
 
     // TODO: mock dati impatto
+    const initialVelocity: Decimal = initialMeteorVelocity2(point.x, point.y, semi_major_axis);
 
     res.send({
         crater_radius: 10
     });
 })
+
 
 /* ==== LISTEN ============================================================== */
 server.listen(PORT, () => {
@@ -128,7 +144,7 @@ function initialMeteorVelocity2(_x: number, _y: number, _semi_major_axis: number
   const term = new Decimal(2).div(r).minus(new Decimal(1).div(semi_major_axis));
   const result = SOLAR_MASS2.times(GRAVITATIONAL_CONSTANT2).times(term).sqrt();
 
-  return result.toString();
+  return result;
 }
 
 /* ==== UTILS =============================================================== */
