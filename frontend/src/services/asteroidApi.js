@@ -12,7 +12,7 @@ export async function fetchOrbitData2() {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
-        a: 30,       // semiasse maggiore (distanza media Sole→asteroide)
+        a: 31,       // semiasse maggiore (distanza media Sole→asteroide)
         e: 0.6,      // eccentricità: periapside vicino alla Terra
         i: 45,        // inclinazione in gradi
         raan: 0,
