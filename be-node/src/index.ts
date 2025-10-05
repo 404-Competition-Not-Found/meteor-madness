@@ -85,6 +85,28 @@ app.get("/asteroids/:id", async (req: any, res: any) => {
         }
     });
 
+    const km = data.estimated_diameter?.kilometers;
+    if (km && typeof km.estimated_diameter_min === 'number' && typeof km.estimated_diameter_max === 'number') {
+        data.estimated_diameter = (km.estimated_diameter_min + km.estimated_diameter_max) / 2;
+    }
+
+
+    // Get current time in milliseconds
+    const now = Date.now();
+
+    // Filter out past dates
+    const futureApproaches = data.close_approach_data.filter((entry: any) => {
+        return entry.epoch_date_close_approach > now;
+    });
+
+    // Sort by closest upcoming date
+    const closestApproach = futureApproaches.sort((a: any, b: any) => {
+        return a.epoch_date_close_approach - b.epoch_date_close_approach;
+    })[0];
+
+    data.closest_approach_data = closestApproach;
+
+
     res.send(removeLinks(data));
 })
 
