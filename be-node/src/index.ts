@@ -115,7 +115,7 @@ app.post("/simulate/impact", async (req: any, res: any) => {
     const { point, diameter: d, semi_major_axis: sma } = req.body || {};
     if (
         typeof sma !== 'number' || typeof d !== 'number'
-        || !point || typeof point.x !== 'number' || typeof point.y !== 'number'
+        //|| !point || typeof point.x !== 'number' || typeof point.y !== 'number'
     ) return res.status(400).send()
 
     // TODO: calcolare:
