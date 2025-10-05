@@ -132,6 +132,7 @@ async function showAsteroidDetails(asteroid) {
       if (deflect) {
         satelliteMesh = createSatellite();
         scene.add(satelliteMesh);
+        scene.add(satelliteLabel);
         let satMock = createAsteroid()
         orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh, satelliteLabel, orbitData)      
       }else{
@@ -223,11 +224,11 @@ button.onclick = async () => {
   const orbitController = await orbitControllerPromise;  // aspetta che fetch e loop siano pronti
   scene.remove(orbitLine);
   orbitController.updateOrbit((orbit) => {
-    orbit.semi_major_axis = 0.86;
+    orbit.semi_major_axis = 0.85;
     orbit.eccentricity = 0.16
     orbit.perihelion_argument = 180
     orbit.ascending_node_longitude = 0;
-    //orbit.inclination = 0
+    orbit.inclination = 90
     orbit.orbital_period = 35
     orbitLine = createOrbitLine(orbit, sunMesh.position);
     scene.add(orbitLine);
@@ -248,7 +249,6 @@ const satelliteLabel = createSatelliteLabel('Probe');
 scene.add(earthMesh);
 scene.add(sunMesh);
 scene.add(asteroidLabel);
-scene.add(satelliteLabel);
 scene.add(spaceMesh);
 
 renderStaticScene(scene, camera, renderer);

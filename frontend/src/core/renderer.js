@@ -212,12 +212,15 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
     pos.add(sunMesh.position);
     asteroidMesh.position.copy(pos);
     
-    const satellitePos = propagateOrbit(elapsed, currentOrbitData, -1, Math.PI / 2)
-    satellitePos.add(sunMesh.position)
-    satelliteMesh.position.copy(satellitePos);
 
-    satelliteLabel.position.copy(satelliteMesh.position);
-    satelliteLabel.position.y += 1.5; // solleva sopra il satellite
+    if (satelliteMesh != null) {
+      const satellitePos = propagateOrbit(elapsed, currentOrbitData, -1, Math.PI / 2)
+      satellitePos.add(sunMesh.position)
+      satelliteMesh.position.copy(satellitePos);
+
+      satelliteLabel.position.copy(satelliteMesh.position);
+      satelliteLabel.position.y += 1.5; // solleva sopra il satellite
+    }
 
     asteroidLabel.position.copy(asteroidMesh.position);
     asteroidLabel.position.y += 1.5;
