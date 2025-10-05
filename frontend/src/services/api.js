@@ -17,7 +17,7 @@ export async function getAsteroids() {
 export async function getImpact() {
   const response = await axios.post(`http://localhost:8000/simulate/impact`, {
     semi_major_axis: 2,
-    diameter: 200,
+    diameter: 10,
     
   });
   console.log(response.data)
