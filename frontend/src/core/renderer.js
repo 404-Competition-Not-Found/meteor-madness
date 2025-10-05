@@ -4,6 +4,7 @@ import { fetchOrbitDataByAsteroidId } from '../services/asteroidApi.js';
 import { fetchOrbitData2 } from '../services/asteroidApi.js';
 import { addCraterVertexColor } from './objects/crater.js';
 import { createExplosion, updateExplosion } from './effects/explosion.js';
+import { updateHUD } from '../ui/hud.js';
 
 function keplerSolve(e, M) {
   let E = M;
@@ -86,7 +87,7 @@ function updateLabelScale(sprite, camera) {
   sprite.scale.set(scaleFactor, scaleFactor * 0.5, 1);
 }
 
-export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh) {
+export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh, is_static) {
   return fetchOrbitDataByAsteroidId(3427459).then((orbitData) =>{
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -108,51 +109,66 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
     let currentOrbitData = orbitData;
     let orbitLine = createOrbitLine(currentOrbitData, sunMesh.position);
     scene.add(orbitLine);
-
+    if(!is_static){
+      scene.add(asteroidMesh);
+    }
     function animate() {
-      const elapsed = clock.getElapsedTime();
-      const dt = clock.getDelta();
-      asteroidMesh.position.x += 0.5 * dt; // movimento verso la Terra
+      if(!is_static){
+        const elapsed = clock.getElapsedTime();
+        const dt = clock.getDelta();
+        asteroidMesh.position.x += 0.5 * dt; // movimento verso la Terra
 
-      const earthAsteroidDistance = earthMesh.position.distanceTo(asteroidMesh.position);
+        const earthAsteroidDistance = earthMesh.position.distanceTo(asteroidMesh.position);
 
-      if (checkAsteroidSatelliteCollision(asteroidMesh, asteroidRadius, satelliteMesh)) {
-        console.log('Collisione asteroide / satellite rilevata!');
-        // qui puoi aggiungere effetti, rimuovere oggetti, ecc.
+        if (satelliteMesh !== null && checkAsteroidSatelliteCollision(asteroidMesh, asteroidRadius, satelliteMesh)) {
+          console.log('Collisione asteroide / satellite rilevata!');
+          // qui puoi aggiungere effetti, rimuovere oggetti, ecc.
+        }
+
+        if (!asteroidRemoved && earthAsteroidDistance <= vanishDist) {
+          console.log('🌀 L’asteroide è per 1/3 dentro la Terra → creo cratere e rimuovo');
+          updateHUD('Impact Analysis', {
+            craterDiameter: '1.2 km',
+            asteroidSpeed: '25 km/s',
+            casualties: '1500',
+            economicDamage: '$2B',
+            earthquakeMagnitude: '6.8',
+            tsunamiHeight: '3 m'
+          });
+
+          const centerDir = new THREE.Vector3()
+            .subVectors(asteroidMesh.position, earthMesh.position)
+            .normalize();
+
+          const craterRadius = asteroidRadius * 1.2; 
+          const craterDepth = asteroidRadius * 0.4;  
+
+          addCraterVertexColor(earthMesh, centerDir, craterRadius, craterDepth);
+
+          explosionParticles = createExplosion(scene, asteroidMesh.position.clone());
+          scene.remove(asteroidMesh);
+          scene.remove(asteroidLabel);
+          asteroidRemoved = true;
+        }
+
+        if (explosionParticles) updateExplosion(explosionParticles, dt);
+
+        
+        const pos = propagateOrbit(elapsed, currentOrbitData);
+        pos.add(sunMesh.position); // trasla l'orbita attorno al Sole
+        asteroidMesh.position.copy(pos);
+
+        asteroidLabel.position.copy(asteroidMesh.position);
+        asteroidLabel.position.y += 1.5; // solleva sopra l'asteroide
+
+        updateLabelScale(asteroidLabel, camera);
       }
-
-      if (!asteroidRemoved && earthAsteroidDistance <= vanishDist) {
-        console.log('🌀 L’asteroide è per 1/3 dentro la Terra → creo cratere e rimuovo');
-
-        const centerDir = new THREE.Vector3()
-          .subVectors(asteroidMesh.position, earthMesh.position)
-          .normalize();
-
-        const craterRadius = asteroidRadius * 1.2; 
-        const craterDepth = asteroidRadius * 0.4;  
-
-        addCraterVertexColor(earthMesh, centerDir, craterRadius, craterDepth);
-
-        explosionParticles = createExplosion(scene, asteroidMesh.position.clone());
-        scene.remove(asteroidMesh);
-        asteroidRemoved = true;
-      }
-
-      if (explosionParticles) updateExplosion(explosionParticles, dt);
-
       controls.update();
-      const pos = propagateOrbit(elapsed, currentOrbitData);
-      pos.add(sunMesh.position); // trasla l'orbita attorno al Sole
-      asteroidMesh.position.copy(pos);
-
-      asteroidLabel.position.copy(asteroidMesh.position);
-      asteroidLabel.position.y += 1.5; // solleva sopra l'asteroide
-
-      updateLabelScale(asteroidLabel, camera);
 
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
     }
+      
     animate();
     return {
       updateOrbit(modifyFn) {

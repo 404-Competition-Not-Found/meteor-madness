@@ -207,3 +207,55 @@ body, #hud, .asteroid-item, .hud-btn, input, label, span, p, h2 {
 input, button {
   font-family: inherit;
 }
+
+.hud-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.95rem;
+  color: #00ffff;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.hud-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #00ffff; /* colore del check */
+  cursor: pointer;
+}
+
+/* Lista Consequences */
+.consequences-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.consequence-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(0,255,255,0.05);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+}
+
+.consequence-item:hover {
+  background-color: rgba(0,255,255,0.15);
+}
+
+.consequence-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.consequence-text strong {
+  color: #00ffff;
+}
+
