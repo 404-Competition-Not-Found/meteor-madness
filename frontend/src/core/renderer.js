@@ -133,6 +133,7 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
 
           explosionParticles = createExplosion(scene, asteroidMesh.position.clone());
           scene.remove(asteroidMesh);
+          scene.remove(asteroidLabel);
           asteroidRemoved = true;
         }
 
