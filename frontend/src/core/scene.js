@@ -10,7 +10,7 @@ export function createScene() {
     0.1,
     1000
   );
-  camera.position.set(0, 5, 20);
+  camera.position.set(0, 15, 100);
 
   // Renderer
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });

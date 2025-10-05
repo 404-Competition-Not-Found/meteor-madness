@@ -19,7 +19,6 @@ export async function fetchOrbitData2() {
 
 export async function fetchOrbitDataByAsteroidId(id) {
   const response = await axios.get(`http://localhost:8000/asteroids/${id}`);
-  console.log(response.data)
   return response.data.orbital_data;
 }
 

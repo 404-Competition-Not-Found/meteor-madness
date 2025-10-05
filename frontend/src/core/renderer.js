@@ -34,11 +34,12 @@ function checkAsteroidSatelliteCollision(asteroidMesh, asteroidRadius, satellite
 }
 
 function propagateOrbit(t, elements) {
-    const { a, e, i, raan, argPeriapsis, period } = elements;
+    let { semi_major_axis: a, eccentricity: e, inclination: i, ascending_node_longitude: raan, perihelion_argument: argPeriapsis, orbital_period: period } = elements;
+    a*=50
     const n = (2 * Math.PI) / period;
     const M = n * t;
     const E = keplerSolve(e, M);
-
+  
     const x_orb = a * (Math.cos(E) - e);
     const y_orb = a * Math.sqrt(1 - e * e) * Math.sin(E);
 
@@ -51,7 +52,8 @@ function propagateOrbit(t, elements) {
 }
 
 function createOrbitLine(elements, sunPosition, segments = 200) {
-  const { a, e, i, raan, argPeriapsis } = elements;
+  let { semi_major_axis: a, eccentricity: e, inclination: i, ascending_node_longitude: raan, perihelion_argument: argPeriapsis } = elements;
+  a*=50
   console.log("a -> " + a)
   const points = [];
 
