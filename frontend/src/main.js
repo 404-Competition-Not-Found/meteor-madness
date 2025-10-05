@@ -1,6 +1,7 @@
 import { createScene } from './core/scene.js';
 import { createEarth } from './core/objects/earth.js';
 import { createSpace } from './core/objects/space.js';
+import { createButtonSprite } from './core/objects/space.js';
 import { createSatellite } from './core/objects/satellite.js';
 import { startRenderLoop } from './core/renderer.js';
 import { createAsteroid } from './core/objects/asteroid.js';
@@ -8,9 +9,15 @@ import { getAsteroids } from '../src/services/api.js';
 import * as THREE from 'three';
 import { createSun } from './core/objects/sun.js';
 import { createAsteroidLabel } from './core/objects/asteroid.js';
+import { fetchOrbitDataByAsteroidId } from '../src/services/asteroidApi.js';
+import { createOrbitLine } from './core/renderer.js';
+import { renderStaticScene } from './core/renderer.js';
 
 const { scene, camera, renderer } = createScene();
 
+let orbitLine = null;
+
+let orbitControllerPromise 
 // --- HUD ---
 const hud = document.createElement('div');
 hud.id = 'hud';
@@ -101,7 +108,42 @@ function renderAsteroids(list) {
 }
 
 // --- Dettagli asteroide ---
-function showAsteroidDetails(asteroid) {
+async function showAsteroidDetails(asteroid) {
+  const orbitController = await orbitControllerPromise;  // aspetta che fetch e loop siano pronti
+  fetchOrbitDataByAsteroidId(asteroid.id).then((orbitData) =>{
+    orbitLine = createOrbitLine(orbitData, sunMesh.position);
+    scene.add(orbitLine);
+    /*orbitController.updateOrbit((orbit) => {
+      orbit.semi_major_axis = orbitData.semi_major_axis;
+      orbit.eccentricity = orbitData.eccentricity;
+      orbit.inclination = orbitData.inclination;
+      orbit.ascending_node_longitude = orbitData.ascending_node_longitude;
+      orbit.perihelion_argument = orbitData.perihelion_argument;
+      orbit.orbital_period = orbitData.orbital_period;
+    });*/
+    document.getElementById('startSimBtn').addEventListener('click', async () => {
+      const deflect = document.getElementById('deflectCheckbox').checked;
+      console.log(`Starting simulation for ${asteroid.name}, deflect: ${deflect}`);
+
+      // --- Aggiungi satellite solo se la checkbox è selezionata ---
+      let satelliteMesh = null;
+      
+      if (deflect) {
+        satelliteMesh = await createSatellite();
+        scene.add(satelliteMesh);
+
+        createSatellite().then((satelliteMesh) => {
+          scene.add(satelliteMesh);
+          orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, orbitData)      
+        }).catch((err) => {
+          console.error(err);
+        });
+      }else{
+        orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, orbitData)    
+      }
+    });
+  })
+
   hud.innerHTML = `
     <div class="asteroid-detail">
       <button id="backToList" class="hud-btn small">← Back to List</button>
@@ -130,27 +172,6 @@ function showAsteroidDetails(asteroid) {
     hud.appendChild(header);
     hud.appendChild(asteroidListEl);
   });
-
-  document.getElementById('startSimBtn').addEventListener('click', async () => {
-    const deflect = document.getElementById('deflectCheckbox').checked;
-    console.log(`Starting simulation for ${asteroid.name}, deflect: ${deflect}`);
-
-    // --- Aggiungi satellite solo se la checkbox è selezionata ---
-    let satelliteMesh = null;
-    if (deflect) {
-      satelliteMesh = await createSatellite();
-      scene.add(satelliteMesh);
-
-      createSatellite().then((satelliteMesh) => {
-        scene.add(satelliteMesh);
-        startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, false)      
-      }).catch((err) => {
-        console.error(err);
-      });
-    }else{
-      startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, false)    
-    }
-  });
 }
 
 // --- Sorting pulsanti ---
@@ -178,6 +199,53 @@ document.getElementById('loadAsteroidsBtn').addEventListener('click', () => {
 
   loadAsteroids(start, end);
 });
+// Crea il bottone
+const button = document.createElement('button');
+button.innerText = 'Align trajectory';
+button.id = 'floating-button';
+
+// Applica gli stili
+Object.assign(button.style, {
+  position: 'fixed',
+  bottom: '20px',
+  left: '50%',           // centro orizzontalmente
+  transform: 'translateX(-50%)', // corregge il centro
+  background: '#007bff',
+  color: 'white',
+  border: 'none',
+  borderRadius: '30px', // arrotondato
+  padding: '10px 20px', // larghezza dinamica in base al testo
+  fontSize: '20px',
+  cursor: 'pointer',
+  boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+  transition: 'transform 0.2s ease',
+  zIndex: '9999', // sopra al canvas
+  whiteSpace: 'nowrap', // evita a capo
+  userSelect: 'none',
+});
+
+// Animazioni hover
+button.onmouseenter = () => (button.style.transform = 'translateX(-50%) scale(1.1)');
+button.onmouseleave = () => (button.style.transform = 'translateX(-50%) scale(1)');
+
+// Azione al click
+button.onclick = async () => {
+  const orbitController = await orbitControllerPromise;  // aspetta che fetch e loop siano pronti
+  scene.remove(orbitLine);
+  orbitController.updateOrbit((orbit) => {
+    orbit.semi_major_axis = 0.86;
+    orbit.eccentricity = 0.16
+    orbit.perihelion_argument = 180
+    orbit.ascending_node_longitude = 0;
+    orbit.inclination = 0
+    orbit.orbital_period = 15
+    orbitLine = createOrbitLine(orbit, sunMesh.position);
+    scene.add(orbitLine);
+  });
+};
+
+// Aggiungi al body
+document.body.appendChild(button);
 
 // --- Setup scena 3D ---
 const earthMesh = createEarth();
@@ -191,4 +259,7 @@ scene.add(sunMesh);
 scene.add(asteroidLabel);
 scene.add(spaceMesh);
 
-startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, true)
+renderStaticScene(scene, camera, renderer);
+
+//orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, true)
+

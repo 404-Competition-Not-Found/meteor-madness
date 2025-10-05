@@ -10,7 +10,7 @@ export function createScene() {
     0.1,
     1000
   );
-  camera.position.set(0, 5, 20);
+  camera.position.set(0, 15, 100);
 
   // Renderer
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -20,8 +20,18 @@ export function createScene() {
   document.body.appendChild(renderer.domElement);
 
   // 🔹 AmbientLight minimale (solo leggero fill)
-  const ambient = new THREE.AmbientLight(0xffffff, 0.10);
+  const ambient = new THREE.AmbientLight(0xffffff, 0.30);
   scene.add(ambient);
+
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+
+  // Posizione originale (esempio)
+  directionalLight.position.set(-10, 10, -10);
+
+  // Per spostarla dalla parte opposta:
+  directionalLight.position.multiplyScalar(-1); // Ora è a (-10, -10, -10)
+
+  scene.add(directionalLight);
 
   // Resize
   window.addEventListener('resize', () => {
