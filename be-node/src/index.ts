@@ -141,19 +141,19 @@ app.post("/simulate/impact", async (req: any, res: any) => {
     const diameter = (new Decimal(d)).pow(new Decimal(0.78))
     const velocity = (new Decimal(initialVelocity)).pow(new Decimal(0.44))
     const gravity = (new Decimal(9.81)).pow(new Decimal(-0.22))
-    const crater_radius: any = densities.times(diameter).times(velocity).times(gravity)
+    const crater_radius: Decimal = densities.times(diameter).times(velocity).times(gravity)
 
     const energy = (new Decimal(2/3)).times(diameter.div(new Decimal(2))).times(new Decimal(3000)).times(velocity.pow(new Decimal(2)))
 
     res.send({
-        crater_radius,
+        crater_radius: crater_radius.toNumber(),
         victims: 100,
-        shockwave_radius: crater_radius*20,
-        earthquake_radius: crater_radius*100,
-        earthquake_magnitude: energy.log(10).minus(new Decimal(4.8)).div(new Decimal(1.5)),
+        shockwave_radius: crater_radius.times(10.2).toNumber(),
+        earthquake_radius: crater_radius.times(100).toNumber(),
+        earthquake_magnitude: energy.log(10).minus(new Decimal(4.8)).div(new Decimal(1.5)).toNumber(),
         money: 45000000000,
-        velocity,
-        tsunami_height: energy.div(980000).squareRoot().times((new Decimal(400)).pow(1/4))
+        velocity: velocity.toNumber(),
+        tsunami_height: energy.div(980000).squareRoot().times((new Decimal(400)).pow(1/4)).toNumber()
     });
 })
 
