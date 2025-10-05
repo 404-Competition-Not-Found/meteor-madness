@@ -110,27 +110,74 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
   controls.minDistance = 2;
   controls.maxDistance = 100;
 
+  // Abilita ombre per la Terra
+  earthMesh.castShadow = true;
+  earthMesh.receiveShadow = true;
+
   const earthRadius = earthMesh.geometry.parameters.radius;
   const asteroidRadius = asteroidMesh.geometry.parameters.radius;
-
   const vanishDist = (earthRadius + asteroidRadius) - (asteroidRadius / 2);
 
   const clock = new THREE.Clock();
-
   let asteroidRemoved = false;
-
-  let explosionParticles = null;
+  let impactEffects = null;
+  let impactTime = null;
 
   scene.add(asteroidMesh);
+
+  function createImpactEffects(position) {
+    // Lampo di luce
+    const impactLight = new THREE.PointLight(0xffaa33, 3, 15, 2); // Colore arancione per impatto
+    impactLight.position.copy(position);
+    scene.add(impactLight);
+
+    // Onda d'urto
+    const shockwaveGeometry = new THREE.RingGeometry(0.1, 0.5, 32);
+    const shockwaveMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffaa33,
+      transparent: true,
+      opacity: 0.5,
+      side: THREE.DoubleSide,
+    });
+    const shockwave = new THREE.Mesh(shockwaveGeometry, shockwaveMaterial);
+    shockwave.position.copy(position);
+    shockwave.lookAt(earthMesh.position);
+    scene.add(shockwave);
+
+    return { impactLight, shockwave };
+  }
+
+  function updateImpactEffects(dt, effects) {
+    const { impactLight, shockwave } = effects;
+    const timeSinceImpact = clock.getElapsedTime() - impactTime;
+
+    if (impactLight) {
+      impactLight.intensity = Math.max(0, 3 * (1 - timeSinceImpact / 0.5));
+      if (timeSinceImpact > 0.5) {
+        scene.remove(impactLight);
+        effects.impactLight = null;
+      }
+    }
+
+    if (shockwave) {
+      shockwave.scale.multiplyScalar(1 + dt * 5);
+      shockwave.material.opacity = Math.max(0, 0.5 * (1 - timeSinceImpact / 0.7));
+      if (timeSinceImpact > 0.7) {
+        scene.remove(shockwave);
+        effects.shockwave = null;
+      }
+    }
+  }
+
   function animate() {
     const elapsed = clock.getElapsedTime();
     const dt = clock.getDelta();
-    asteroidMesh.position.x += 0.5 * dt; // movimento verso la Terra
+    asteroidMesh.position.x += 0.5 * dt;
 
     const earthAsteroidDistance = earthMesh.position.distanceTo(asteroidMesh.position);
 
     if (satelliteMesh !== null && checkAsteroidSatelliteCollision(asteroidMesh, asteroidRadius, satelliteMesh)) {
-      // qui puoi aggiungere effetti, rimuovere oggetti, ecc.
+      // Gestione collisione con satellite
     }
 
     if (!asteroidRemoved && earthAsteroidDistance <= vanishDist) {
@@ -142,24 +189,26 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
         .normalize();
 
       const craterRadius = asteroidRadius * 1.2;
-      const craterDepth = asteroidRadius * 0.4;
+      const craterDepth = asteroidRadius * 0.5; // Aumenta leggermente per visibilità
 
       addCraterVertexColor(earthMesh, centerDir, craterRadius, craterDepth);
 
-      explosionParticles = createExplosion(scene, asteroidMesh.position.clone());
+      impactEffects = createImpactEffects(asteroidMesh.position.clone());
+      impactTime = elapsed;
+
       scene.remove(asteroidMesh);
       scene.remove(asteroidLabel);
       asteroidRemoved = true;
     }
 
-    if (explosionParticles) updateExplosion(explosionParticles, dt);
+    if (impactEffects) updateImpactEffects(dt, impactEffects);
 
     const pos = propagateOrbit(elapsed, currentOrbitData);
-    pos.add(sunMesh.position); // trasla l'orbita attorno al Sole
+    pos.add(sunMesh.position);
     asteroidMesh.position.copy(pos);
 
     asteroidLabel.position.copy(asteroidMesh.position);
-    asteroidLabel.position.y += 1.5; // solleva sopra l'asteroide
+    asteroidLabel.position.y += 1.5;
 
     updateLabelScale(asteroidLabel, camera);
     controls.update();
@@ -172,9 +221,9 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
 
   return {
     updateOrbit(modifyFn) {
-      console.log("Prima orbital data" + JSON.stringify(currentOrbitData))
-      modifyFn(currentOrbitData);          // modifica i valori che vuoi
-      console.log(" orbital " +  JSON.stringify(currentOrbitData))
+      console.log("Prima orbital data" + JSON.stringify(currentOrbitData));
+      modifyFn(currentOrbitData);
+      console.log(" orbital " + JSON.stringify(currentOrbitData));
     }
   };
 }

@@ -203,6 +203,7 @@ document.getElementById('loadAsteroidsBtn').addEventListener('click', () => {
 const button = document.createElement('button');
 button.innerText = 'Align trajectory';
 button.id = 'floating-button';
+button.classList.add('hud-btn');
 
 // Applica gli stili
 Object.assign(button.style, {
@@ -210,18 +211,8 @@ Object.assign(button.style, {
   bottom: '20px',
   left: '50%',           // centro orizzontalmente
   transform: 'translateX(-50%)', // corregge il centro
-  background: '#007bff',
-  color: 'white',
-  border: 'none',
-  borderRadius: '30px', // arrotondato
-  padding: '10px 20px', // larghezza dinamica in base al testo
-  fontSize: '20px',
-  cursor: 'pointer',
-  boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
   transition: 'transform 0.2s ease',
   zIndex: '9999', // sopra al canvas
-  whiteSpace: 'nowrap', // evita a capo
-  userSelect: 'none',
 });
 
 // Animazioni hover

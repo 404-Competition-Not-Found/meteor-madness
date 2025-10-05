@@ -4,7 +4,7 @@ export function createEarth() {
   const loader = new THREE.TextureLoader();
   const texture = loader.load('/textures/earth-day.jpg');
 
-  const geometry = new THREE.SphereGeometry(1.5, 64, 64);
+  const geometry = new THREE.SphereGeometry(1.5, 256, 256);
   const material = new THREE.MeshStandardMaterial({
     map: texture,
     normalMap: texture,
