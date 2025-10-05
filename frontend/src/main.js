@@ -238,6 +238,7 @@ button.onclick = async () => {
     orbit.perihelion_argument = 180
     orbit.ascending_node_longitude = 0;
     orbit.inclination = 0
+    orbit.orbital_period = 15
     orbitLine = createOrbitLine(orbit, sunMesh.position);
     scene.add(orbitLine);
   });

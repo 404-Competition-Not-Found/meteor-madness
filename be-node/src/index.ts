@@ -114,8 +114,8 @@ app.post("/simulate/trajectory", async (req: any, res: any) => {
 app.post("/simulate/impact", async (req: any, res: any) => {
     const { point, diameter: d, semi_major_axis: sma } = req.body || {};
     if (
-        typeof sma !== 'number' || typeof d !== 'number' ||
-        !point || typeof point.x !== 'number' || typeof point.y !== 'number'
+        typeof sma !== 'number' || typeof d !== 'number'
+        //|| !point || typeof point.x !== 'number' || typeof point.y !== 'number'
     ) return res.status(400).send()
 
     // TODO: calcolare:
@@ -126,19 +126,22 @@ app.post("/simulate/impact", async (req: any, res: any) => {
     // TODO: mock dati impatto
 
     // Calculate initial velocity
-    const x = new Decimal(point.x);
-    const y = new Decimal(point.y);
-    const semi_major_axis = new Decimal(sma);
+    //const x = new Decimal(point.x);
+    //const y = new Decimal(point.y);
+    const semi_major_axis = uaToMeters(new Decimal(sma));
 
     const SOLAR_MASS2 = new Decimal('1.988416e30');
     const GRAVITATIONAL_CONSTANT2 = new Decimal('6.67e-11');
-    const r = x.pow(2).plus(y.pow(2)).sqrt();
+    const r = uaToMeters(new Decimal(1));  // x.pow(2).plus(y.pow(2)).sqrt();
+
     const term = new Decimal(2).div(r).minus(new Decimal(1).div(semi_major_axis));
+
     const initialVelocity = SOLAR_MASS2.times(GRAVITATIONAL_CONSTANT2).times(term).sqrt();
 
     // Calculate crater radius
     const densities = (new Decimal(6/5)).pow(new Decimal(1/3))
-    const diameter = (new Decimal(d)).pow(new Decimal(0.78))
+    // Diametro in km, divido per 1000
+    const diameter = (new Decimal(d).div(1000)).pow(new Decimal(0.78))
     const velocity = (new Decimal(initialVelocity)).pow(new Decimal(0.44))
     const gravity = (new Decimal(9.81)).pow(new Decimal(-0.22))
     const crater_radius: Decimal = densities.times(diameter).times(velocity).times(gravity)
@@ -147,7 +150,7 @@ app.post("/simulate/impact", async (req: any, res: any) => {
 
     res.send({
         crater_radius: crater_radius.toNumber(),
-        victims: 100,
+        victims: 1500000,
         shockwave_radius: crater_radius.times(10.2).toNumber(),
         earthquake_radius: crater_radius.times(100).toNumber(),
         earthquake_magnitude: energy.log(10).minus(new Decimal(4.8)).div(new Decimal(1.5)).toNumber(),
@@ -156,6 +159,38 @@ app.post("/simulate/impact", async (req: any, res: any) => {
         tsunami_height: energy.div(980000).squareRoot().times((new Decimal(400)).pow(1/4)).toNumber()
     });
 })
+
+app.post("/simulate/deflect", async (req: any, res: any) => {
+    const { velocity, diameter, point } = req.body || {};
+    if (
+        typeof velocity !== 'number' ||
+        !point || typeof point.x !== 'number' || typeof point.y !== 'number'
+    ) return res.status(400).send()
+
+    // Calculate asteroid velocity after impact
+    const probe_mass = new Decimal(570);    // 610kg con carburante
+    const probe_velocity = new Decimal(6.6);
+    // Diametro in km, divido per 1000
+    const asteroid_mass = new Decimal(4/3).times(Math.PI).times( (new Decimal(diameter).div(1000)).div(2).pow(3) ).times(3000);
+    const asteroid_velocity = new Decimal(10);
+    const final_asteroid_velocity = probe_mass.times(probe_velocity).minus(asteroid_mass.times(asteroid_velocity)).div(probe_mass.plus(asteroid_mass))
+
+    const SOLAR_MASS2 = new Decimal('1.988416e30');
+    const GRAVITATIONAL_CONSTANT2 = new Decimal('6.67e-11');
+    const distance = uaToMeters(new Decimal(1)) //new Decimal(point.x).pow(2).plus( new Decimal(point.y).pow(2) ).sqrt();
+
+    const semi_major_axis = new Decimal(-1/2).times(distance).times(SOLAR_MASS2).times(GRAVITATIONAL_CONSTANT2).div(
+        new Decimal(1/2).times( final_asteroid_velocity.pow(2) ).times(distance).minus( SOLAR_MASS2.times(GRAVITATIONAL_CONSTANT2) )
+    )
+
+    return { semi_major_axis: metersToUa(semi_major_axis).toNumber() };
+})
+
+
+const CONVERSION_RATIO = new Decimal(149.6).times( (new Decimal(10)).pow(9) );
+const metersToUa = (m: Decimal): Decimal => m.div(CONVERSION_RATIO);
+const uaToMeters = (ua: Decimal): Decimal => ua.times(CONVERSION_RATIO);
+
 
 
 /* ==== LISTEN ============================================================== */
