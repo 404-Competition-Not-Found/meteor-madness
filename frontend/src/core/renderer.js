@@ -130,7 +130,6 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
     const earthAsteroidDistance = earthMesh.position.distanceTo(asteroidMesh.position);
 
     if (satelliteMesh !== null && checkAsteroidSatelliteCollision(asteroidMesh, asteroidRadius, satelliteMesh)) {
-      console.log('Collisione asteroide / satellite rilevata!');
       // qui puoi aggiungere effetti, rimuovere oggetti, ecc.
     }
 
@@ -180,11 +179,9 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
 
   return {
     updateOrbit(modifyFn) {
-      console.log("Prima semimasse" + currentOrbitData.semi_major_axis)
-      console.log("Prima angolo" + currentOrbitData.perihelion_argument)
+      console.log("Prima orbital data" + JSON.stringify(currentOrbitData))
       modifyFn(currentOrbitData);          // modifica i valori che vuoi
-      console.log("Dopo" + currentOrbitData.semi_major_axis)
-      console.log("Dopo angolo" + currentOrbitData.perihelion_argument)
+      console.log(" orbital " +  JSON.stringify(currentOrbitData))
     }
   };
 }

@@ -234,7 +234,10 @@ button.onclick = async () => {
   scene.remove(orbitLine);
   orbitController.updateOrbit((orbit) => {
     orbit.semi_major_axis = 0.86;
+    orbit.eccentricity = 0.16
+    orbit.perihelion_argument = 180
     orbit.ascending_node_longitude = 0;
+    orbit.inclination = 0
     orbitLine = createOrbitLine(orbit, sunMesh.position);
     scene.add(orbitLine);
   });
