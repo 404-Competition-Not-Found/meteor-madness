@@ -1,7 +1,10 @@
 import { getImpact } from "../services/api";
 
-function round3(value) {
-  return typeof value === 'number' ? Number(value.toFixed(3)) : value;
+export function round3(value) {
+  // Converte il valore in numero, se possibile
+  const num = parseFloat(value);
+  // Verifica se il valore è un numero valido
+  return isNaN(num) ? value : Number(num.toFixed(3));
 }
 
 export async function updateHUD(message, consequences = {}, showReset = true) {

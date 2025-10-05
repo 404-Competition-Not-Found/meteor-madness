@@ -12,6 +12,7 @@ import { createAsteroidLabel } from './core/objects/asteroid.js';
 import { fetchOrbitDataByAsteroidId } from '../src/services/asteroidApi.js';
 import { createOrbitLine } from './core/renderer.js';
 import { renderStaticScene } from './core/renderer.js';
+import { round3 } from './ui/hud.js';
 
 const { scene, camera, renderer } = createScene();
 
@@ -24,7 +25,7 @@ hud.id = 'hud';
 document.body.appendChild(hud);
 
 const title = document.createElement('h2');
-title.textContent = 'Asteroid Catalog';
+title.textContent = 'NASA NEO Catalog';
 hud.appendChild(title);
 
 const filters = document.createElement('div');
@@ -144,16 +145,19 @@ async function showAsteroidDetails(asteroid) {
     });
   })
 
+  console.log(JSON.stringify(asteroid))
+
   hud.innerHTML = `
     <div class="asteroid-detail">
       <button id="backToList" class="hud-btn small">← Back to List</button>
       <h2>${asteroid.name}</h2>
       <div class="asteroid-data">
-        <p><strong>Diameter:</strong> ${asteroid.diameter} m</p>
-        <p><strong>Velocity:</strong> ${asteroid.velocity} km/s</p>
-        <p><strong>Eccentricity:</strong> ${asteroid.eccentricity}</p>
-        <p><strong>Semi-Major Axis:</strong> ${asteroid.semiMajor} AU</p>
-        <p><strong>Inclination:</strong> ${asteroid.inclination ?? 'N/A'}</p>
+        <p><strong>Diameter:</strong> ${round3(asteroid.estimated_diameter)} km</p>
+        <p><strong>Velocity:</strong> ${round3(asteroid.close_approach_data[0].relative_velocity.kilometers_per_second)} km/s</p>
+        <p><strong>Absolute Magnitude:</strong> ${round3(asteroid.absolute_magnitude_h)} m</p>
+        <p><strong>Miss Distance:</strong> ${round3(asteroid.close_approach_data[0].miss_distance.kilometers)} m</p>
+        <p><strong>Close Approach Date:</strong> ${round3(asteroid.close_approach_data[0].close_approach_date)}</p>
+
       </div>
 
       <label class="hud-checkbox">
