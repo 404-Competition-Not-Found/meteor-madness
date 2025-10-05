@@ -10,9 +10,11 @@ import * as THREE from 'three';
 import { createSun } from './core/objects/sun.js';
 import { createAsteroidLabel } from './core/objects/asteroid.js';
 import { fetchOrbitDataByAsteroidId } from '../src/services/asteroidApi.js';
+import { createOrbitLine } from './core/renderer.js';
 
 const { scene, camera, renderer } = createScene();
 
+let orbitLine = null;
 
 let orbitControllerPromise 
 // --- HUD ---
@@ -108,13 +110,36 @@ function renderAsteroids(list) {
 async function showAsteroidDetails(asteroid) {
   const orbitController = await orbitControllerPromise;  // aspetta che fetch e loop siano pronti
   fetchOrbitDataByAsteroidId(asteroid.id).then((orbitData) =>{
-    orbitController.updateOrbit((orbit) => {
+    orbitLine = createOrbitLine(orbitData, sunMesh.position);
+    scene.add(orbitLine);
+    /*orbitController.updateOrbit((orbit) => {
       orbit.semi_major_axis = orbitData.semi_major_axis;
       orbit.eccentricity = orbitData.eccentricity;
       orbit.inclination = orbitData.inclination;
       orbit.ascending_node_longitude = orbitData.ascending_node_longitude;
       orbit.perihelion_argument = orbitData.perihelion_argument;
       orbit.orbital_period = orbitData.orbital_period;
+    });*/
+    document.getElementById('startSimBtn').addEventListener('click', async () => {
+      const deflect = document.getElementById('deflectCheckbox').checked;
+      console.log(`Starting simulation for ${asteroid.name}, deflect: ${deflect}`);
+
+      // --- Aggiungi satellite solo se la checkbox è selezionata ---
+      let satelliteMesh = null;
+      
+      if (deflect) {
+        satelliteMesh = await createSatellite();
+        scene.add(satelliteMesh);
+
+        createSatellite().then((satelliteMesh) => {
+          scene.add(satelliteMesh);
+          orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, orbitData)      
+        }).catch((err) => {
+          console.error(err);
+        });
+      }else{
+        orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, orbitData)    
+      }
     });
   })
 
@@ -145,27 +170,6 @@ async function showAsteroidDetails(asteroid) {
     hud.appendChild(filters);
     hud.appendChild(header);
     hud.appendChild(asteroidListEl);
-  });
-
-  document.getElementById('startSimBtn').addEventListener('click', async () => {
-    const deflect = document.getElementById('deflectCheckbox').checked;
-    console.log(`Starting simulation for ${asteroid.name}, deflect: ${deflect}`);
-
-    // --- Aggiungi satellite solo se la checkbox è selezionata ---
-    let satelliteMesh = null;
-    if (deflect) {
-      satelliteMesh = await createSatellite();
-      scene.add(satelliteMesh);
-
-      createSatellite().then((satelliteMesh) => {
-        scene.add(satelliteMesh);
-        orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, false)      
-      }).catch((err) => {
-        console.error(err);
-      });
-    }else{
-      orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, false)    
-    }
   });
 }
 
@@ -226,9 +230,12 @@ button.onmouseleave = () => (button.style.transform = 'translateX(-50%) scale(1)
 // Azione al click
 button.onclick = async () => {
   const orbitController = await orbitControllerPromise;  // aspetta che fetch e loop siano pronti
+  scene.remove(orbitLine);
   orbitController.updateOrbit((orbit) => {
     orbit.semi_major_axis = 0.86;
     orbit.ascending_node_longitude = 0;
+    orbitLine = createOrbitLine(orbit, sunMesh.position);
+    scene.add(orbitLine);
   });
 };
 
@@ -247,5 +254,7 @@ scene.add(sunMesh);
 scene.add(asteroidLabel);
 scene.add(spaceMesh);
 
-orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, true)
+renderer.render(scene, camera);
+
+//orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, true)
 
