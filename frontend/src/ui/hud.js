@@ -1,4 +1,10 @@
-export function updateHUD(message, consequences = {}, showReset = true) {
+import { getImpact } from "../services/api";
+
+export async function updateHUD(message, consequences = {}, showReset = true) {
+  const data = await getImpact();
+
+  console.log(data);
+
   // Struttura delle "consequences" con icone come immagini
   const rows = [
     { icon: 'icons/crater.png', label: 'Crater Diameter', key: 'craterDiameter' },

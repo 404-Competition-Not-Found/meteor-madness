@@ -23,6 +23,16 @@ export function createScene() {
   const ambient = new THREE.AmbientLight(0xffffff, 0.10);
   scene.add(ambient);
 
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+
+  // Posizione originale (esempio)
+  directionalLight.position.set(-10, 10, -10);
+
+  // Per spostarla dalla parte opposta:
+  directionalLight.position.multiplyScalar(-1); // Ora è a (-10, -10, -10)
+
+  scene.add(directionalLight);
+
   // Resize
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
