@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { fetchOrbitData2 } from '../services/asteroidApi.js';
 import { addCraterVertexColor } from './objects/crater.js';
 import { createExplosion, updateExplosion } from './effects/explosion.js';
+import { updateHUD } from '../ui/hud.js';
 
 function keplerSolve(e, M) {
   let E = M;
@@ -121,6 +122,14 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
 
         if (!asteroidRemoved && earthAsteroidDistance <= vanishDist) {
           console.log('🌀 L’asteroide è per 1/3 dentro la Terra → creo cratere e rimuovo');
+          updateHUD('Impact Analysis', {
+            craterDiameter: '1.2 km',
+            asteroidSpeed: '25 km/s',
+            casualties: '1500',
+            economicDamage: '$2B',
+            earthquakeMagnitude: '6.8',
+            tsunamiHeight: '3 m'
+          });
 
           const centerDir = new THREE.Vector3()
             .subVectors(asteroidMesh.position, earthMesh.position)

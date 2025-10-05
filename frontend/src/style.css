@@ -225,3 +225,37 @@ input, button {
   accent-color: #00ffff; /* colore del check */
   cursor: pointer;
 }
+
+/* Lista Consequences */
+.consequences-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.consequence-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(0,255,255,0.05);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+}
+
+.consequence-item:hover {
+  background-color: rgba(0,255,255,0.15);
+}
+
+.consequence-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.consequence-text strong {
+  color: #00ffff;
+}
+
