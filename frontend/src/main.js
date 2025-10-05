@@ -11,6 +11,7 @@ import { createSun } from './core/objects/sun.js';
 import { createAsteroidLabel } from './core/objects/asteroid.js';
 import { fetchOrbitDataByAsteroidId } from '../src/services/asteroidApi.js';
 import { createOrbitLine } from './core/renderer.js';
+import { renderStaticScene } from './core/renderer.js';
 
 const { scene, camera, renderer } = createScene();
 
@@ -254,7 +255,7 @@ scene.add(sunMesh);
 scene.add(asteroidLabel);
 scene.add(spaceMesh);
 
-renderer.render(scene, camera);
+renderStaticScene(scene, camera, renderer);
 
 //orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, true)
 

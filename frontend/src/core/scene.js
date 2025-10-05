@@ -20,7 +20,7 @@ export function createScene() {
   document.body.appendChild(renderer.domElement);
 
   // 🔹 AmbientLight minimale (solo leggero fill)
-  const ambient = new THREE.AmbientLight(0xffffff, 0.10);
+  const ambient = new THREE.AmbientLight(0xffffff, 0.30);
   scene.add(ambient);
 
   // Resize
