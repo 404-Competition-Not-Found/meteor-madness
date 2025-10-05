@@ -12,6 +12,7 @@ import { createAsteroidLabel } from './core/objects/asteroid.js';
 import { fetchOrbitDataByAsteroidId } from '../src/services/asteroidApi.js';
 import { createOrbitLine } from './core/renderer.js';
 import { renderStaticScene } from './core/renderer.js';
+import { round3 } from './ui/hud.js';
 
 const { scene, camera, renderer } = createScene();
 
@@ -24,7 +25,7 @@ hud.id = 'hud';
 document.body.appendChild(hud);
 
 const title = document.createElement('h2');
-title.textContent = 'Asteroid Catalog';
+title.textContent = 'NASA NEO Catalog';
 hud.appendChild(title);
 
 const filters = document.createElement('div');
@@ -139,16 +140,19 @@ async function showAsteroidDetails(asteroid) {
     });
   })
 
+  console.log(JSON.stringify(asteroid))
+
   hud.innerHTML = `
     <div class="asteroid-detail">
       <button id="backToList" class="hud-btn small">← Back to List</button>
       <h2>${asteroid.name}</h2>
       <div class="asteroid-data">
-        <p><strong>Diameter:</strong> ${asteroid.diameter} m</p>
-        <p><strong>Velocity:</strong> ${asteroid.velocity} km/s</p>
-        <p><strong>Eccentricity:</strong> ${asteroid.eccentricity}</p>
-        <p><strong>Semi-Major Axis:</strong> ${asteroid.semiMajor} AU</p>
-        <p><strong>Inclination:</strong> ${asteroid.inclination ?? 'N/A'}</p>
+        <p><strong>Diameter:</strong> ${round3(asteroid.estimated_diameter)} km</p>
+        <p><strong>Velocity:</strong> ${round3(asteroid.close_approach_data[0].relative_velocity.kilometers_per_second)} km/s</p>
+        <p><strong>Absolute Magnitude:</strong> ${round3(asteroid.absolute_magnitude_h)} m</p>
+        <p><strong>Miss Distance:</strong> ${round3(asteroid.close_approach_data[0].miss_distance.kilometers)} m</p>
+        <p><strong>Close Approach Date:</strong> ${round3(asteroid.close_approach_data[0].close_approach_date)}</p>
+
       </div>
 
       <label class="hud-checkbox">
@@ -198,6 +202,7 @@ document.getElementById('loadAsteroidsBtn').addEventListener('click', () => {
 const button = document.createElement('button');
 button.innerText = 'Align trajectory';
 button.id = 'floating-button';
+button.classList.add('hud-btn');
 
 // Applica gli stili
 Object.assign(button.style, {
@@ -205,18 +210,8 @@ Object.assign(button.style, {
   bottom: '20px',
   left: '50%',           // centro orizzontalmente
   transform: 'translateX(-50%)', // corregge il centro
-  background: '#007bff',
-  color: 'white',
-  border: 'none',
-  borderRadius: '30px', // arrotondato
-  padding: '10px 20px', // larghezza dinamica in base al testo
-  fontSize: '20px',
-  cursor: 'pointer',
-  boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
   transition: 'transform 0.2s ease',
   zIndex: '9999', // sopra al canvas
-  whiteSpace: 'nowrap', // evita a capo
-  userSelect: 'none',
 });
 
 // Animazioni hover
