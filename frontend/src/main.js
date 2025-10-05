@@ -9,6 +9,7 @@ import { getAsteroids } from '../src/services/api.js';
 import * as THREE from 'three';
 import { createSun } from './core/objects/sun.js';
 import { createAsteroidLabel } from './core/objects/asteroid.js';
+import { fetchOrbitDataByAsteroidId } from '../src/services/asteroidApi.js';
 
 const { scene, camera, renderer } = createScene();
 
@@ -104,7 +105,19 @@ function renderAsteroids(list) {
 }
 
 // --- Dettagli asteroide ---
-function showAsteroidDetails(asteroid) {
+async function showAsteroidDetails(asteroid) {
+  const orbitController = await orbitControllerPromise;  // aspetta che fetch e loop siano pronti
+  fetchOrbitDataByAsteroidId(asteroid.id).then((orbitData) =>{
+    orbitController.updateOrbit((orbit) => {
+      orbit.semi_major_axis = orbitData.semi_major_axis;
+      orbit.eccentricity = orbitData.eccentricity;
+      orbit.inclination = orbitData.inclination;
+      orbit.ascending_node_longitude = orbitData.ascending_node_longitude;
+      orbit.perihelion_argument = orbitData.perihelion_argument;
+      orbit.orbital_period = orbitData.orbital_period;
+    });
+  })
+
   hud.innerHTML = `
     <div class="asteroid-detail">
       <button id="backToList" class="hud-btn small">← Back to List</button>

@@ -6,6 +6,8 @@ import { addCraterVertexColor } from './objects/crater.js';
 import { createExplosion, updateExplosion } from './effects/explosion.js';
 import { updateHUD } from '../ui/hud.js';
 
+let first_loop = false;
+
 function keplerSolve(e, M) {
   let E = M;
   let dE = 1;
@@ -35,26 +37,26 @@ function checkAsteroidSatelliteCollision(asteroidMesh, asteroidRadius, satellite
 }
 
 function propagateOrbit(t, elements) {
-    let { semi_major_axis: a, eccentricity: e, inclination: i, ascending_node_longitude: raan, perihelion_argument: argPeriapsis, orbital_period: period } = elements;
-    a*=50
-    const n = (2 * Math.PI) / period;
-    const M = n * t;
-    const E = keplerSolve(e, M);
-  
-    const x_orb = a * (Math.cos(E) - e);
-    const y_orb = a * Math.sqrt(1 - e * e) * Math.sin(E);
+  let { semi_major_axis: a, eccentricity: e, inclination: i, ascending_node_longitude: raan, perihelion_argument: argPeriapsis, orbital_period: period } = elements;
+  a *= 50
+  const n = (2 * Math.PI) / period;
+  const M = n * t;
+  const E = keplerSolve(e, M);
 
-    const pos = new THREE.Vector3(x_orb, y_orb, 0);
-    pos.applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(argPeriapsis)); // argomento del periapside
-    pos.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(raan));         // nodo ascendente
-    pos.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(i));  
+  const x_orb = a * (Math.cos(E) - e);
+  const y_orb = a * Math.sqrt(1 - e * e) * Math.sin(E);
 
-    return pos;
+  const pos = new THREE.Vector3(x_orb, y_orb, 0);
+  pos.applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(argPeriapsis)); // argomento del periapside
+  pos.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(raan));         // nodo ascendente
+  pos.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(i));
+
+  return pos;
 }
 
 function createOrbitLine(elements, sunPosition, segments = 200) {
   let { semi_major_axis: a, eccentricity: e, inclination: i, ascending_node_longitude: raan, perihelion_argument: argPeriapsis } = elements;
-  a*=50
+  a *= 50
   console.log("Ricreo la linea dell'orbita")
   const points = [];
 
@@ -64,11 +66,11 @@ function createOrbitLine(elements, sunPosition, segments = 200) {
     const x_orb = a * (Math.cos(E) - e);
     const y_orb = a * Math.sqrt(1 - e * e) * Math.sin(E);
     const pos = new THREE.Vector3(x_orb, y_orb, 0);
-    
+
     // Ruota per inclinazione e orientamento
     pos.applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(argPeriapsis)); // argomento del periapside
     pos.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(raan));         // nodo ascendente
-    pos.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(i));  
+    pos.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(i));
 
     // Trasla in base alla posizione del Sole
     pos.add(sunPosition);
@@ -88,7 +90,7 @@ function updateLabelScale(sprite, camera) {
 }
 
 export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh, is_static) {
-  return fetchOrbitDataByAsteroidId(3427459).then((orbitData) =>{
+  return fetchOrbitDataByAsteroidId(3427459).then((orbitData) => {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
@@ -109,11 +111,11 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
     let currentOrbitData = orbitData;
     let orbitLine = createOrbitLine(currentOrbitData, sunMesh.position);
     scene.add(orbitLine);
-    if(!is_static){
+    if (!is_static) {
       scene.add(asteroidMesh);
     }
     function animate() {
-      if(!is_static){
+      if (!is_static) {
         const elapsed = clock.getElapsedTime();
         const dt = clock.getDelta();
         asteroidMesh.position.x += 0.5 * dt; // movimento verso la Terra
@@ -140,8 +142,8 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
             .subVectors(asteroidMesh.position, earthMesh.position)
             .normalize();
 
-          const craterRadius = asteroidRadius * 1.2; 
-          const craterDepth = asteroidRadius * 0.4;  
+          const craterRadius = asteroidRadius * 1.2;
+          const craterDepth = asteroidRadius * 0.4;
 
           addCraterVertexColor(earthMesh, centerDir, craterRadius, craterDepth);
 
@@ -153,7 +155,6 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
 
         if (explosionParticles) updateExplosion(explosionParticles, dt);
 
-        
         const pos = propagateOrbit(elapsed, currentOrbitData);
         pos.add(sunMesh.position); // trasla l'orbita attorno al Sole
         asteroidMesh.position.copy(pos);
@@ -168,8 +169,9 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
     }
-      
+
     animate();
+
     return {
       updateOrbit(modifyFn) {
         console.log("Prima semimasse" + currentOrbitData.semi_major_axis)
