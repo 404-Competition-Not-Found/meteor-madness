@@ -36,8 +36,10 @@ app.get("/asteroids", async (req: any, res: any) => {
         }
     });
 
+    // Remove links from response data
     const data = removeLinks(response.data)
 
+    // Flatten array and put date in each object
     let result: any = [];
     for (const [date, objects] of Object.entries(data.near_earth_objects) as any) {
         objects.forEach((obj: any) => {
@@ -45,6 +47,7 @@ app.get("/asteroids", async (req: any, res: any) => {
         });
     }
 
+    // Set average diameter in kilometers for each meteor
     result = result.map((obj: any) => {
         const km = obj.estimated_diameter?.kilometers;
         if (km && typeof km.estimated_diameter_min === 'number' && typeof km.estimated_diameter_max === 'number') {
@@ -59,23 +62,9 @@ app.get("/asteroids", async (req: any, res: any) => {
     });
 
     res.send(result);
-
-    /*
-    const neoData = data.near_earth_objects;
-
-    let hazardousAsteroids: any[] = [];
-
-    for (const date in neoData) {
-        const dailyAsteroids = neoData[date];
-        const hazardousForDay = dailyAsteroids.filter((asteroid: any) => asteroid.is_potentially_hazardous_asteroid);
-        hazardousAsteroids = hazardousAsteroids.concat(hazardousForDay);
-    }
-
-    console.log(JSON.stringify(hazardousAsteroids));
-    return hazardousAsteroids;
-    */
 })
 
+/** Retrieve specific asteroid data by id. */
 app.get("/asteroids/:id", async (req: any, res: any) => {
     const id = req.params["id"];
     if (!id) return res.status(400).send();
@@ -86,13 +75,10 @@ app.get("/asteroids/:id", async (req: any, res: any) => {
         }
     })).data;
 
+    // Parse useful floats (returned as strings by the API)
     [
-        'semi_major_axis',
-        'eccentricity',
-        'inclination',
-        'ascending_node_longitude',
-        'perihelion_argument',
-        'orbital_period'
+        'semi_major_axis', 'eccentricity', 'inclination',
+        'ascending_node_longitude', 'perihelion_argument', 'orbital_period'
     ].forEach(key => {
         if (data.orbital_data[key] !== undefined) {
             data.orbital_data[key] = parseFloat(data.orbital_data[key]);
@@ -105,34 +91,69 @@ app.get("/asteroids/:id", async (req: any, res: any) => {
 /** Calculate new asteroid semi major axis so that it impacts the earth at the
  *  given coordinates. */
 app.post("/simulate/trajectory", async (req: any, res: any) => {
-    const { eccentricity, ascending_node_longitude, point } = req.body || {};
+    const { eccentricity: e, ascending_node_longitude: theta, point } = req.body || {};
     if (
-        typeof eccentricity !== 'number' || typeof ascending_node_longitude !== 'number' ||
+        typeof e !== 'number' || typeof theta !== 'number' ||
         !point || typeof point.x !== 'number' || typeof point.y !== 'number'
     ) return res.status(400).send()
+    const { x, y } = point;
 
-    res.send({ semi_major_axis: reverse(eccentricity, ascending_node_longitude, point.x, point.y) });
+    // Calculates the new semiaxis using current e, theta and earth coordinates
+    const P = x * Math.cos(theta) + y * Math.sin(theta);
+    const Q = -x * Math.sin(theta) + y * Math.cos(theta);
+    const alpha = (e ** 2) * ((1 - e ** 2) * (1 - Math.cos(theta)) ** 2 + (Math.sin(theta)) ** 2) - (1 - e ** 2);
+    const beta = 2 * e * ((1 - e ** 2) * P * (1 - Math.cos(theta)) + Q * Math.sin(theta));
+    const gamma = (1 - e ** 2) * P ** 2 + Q ** 2;
+
+    const semi_major_axis = (-beta + Math.sqrt(beta ** 2 - 4 * alpha * gamma)) / (2 * alpha)
+
+    res.send({ semi_major_axis });
 })
 
 /** Calculate damage data of the impact of the asteroid on the earth. */
 app.post("/simulate/impact", async (req: any, res: any) => {
-    const { point, semi_major_axis } = req.body || {};
+    const { point, diameter: d, semi_major_axis: sma } = req.body || {};
     if (
-        typeof semi_major_axis !== 'number' ||
+        typeof sma !== 'number' || typeof d !== 'number' ||
         !point || typeof point.x !== 'number' || typeof point.y !== 'number'
     ) return res.status(400).send()
 
     // TODO: calcolare:
-    //  velocità iniziale dell'asteroide
     //  massa persa nell'atmosfera
     //  velocità persa nell'atmosfera
     //  energia cinetica dell'asteroide -> grand gratere, materiale disperso, shockwave, airburst, tsunami
 
     // TODO: mock dati impatto
-    const initialVelocity: Decimal = initialMeteorVelocity2(point.x, point.y, semi_major_axis);
+
+    // Calculate initial velocity
+    const x = new Decimal(point.x);
+    const y = new Decimal(point.y);
+    const semi_major_axis = new Decimal(sma);
+
+    const SOLAR_MASS2 = new Decimal('1.988416e30');
+    const GRAVITATIONAL_CONSTANT2 = new Decimal('6.67e-11');
+    const r = x.pow(2).plus(y.pow(2)).sqrt();
+    const term = new Decimal(2).div(r).minus(new Decimal(1).div(semi_major_axis));
+    const initialVelocity = SOLAR_MASS2.times(GRAVITATIONAL_CONSTANT2).times(term).sqrt();
+
+    // Calculate crater radius
+    const densities = (new Decimal(6/5)).pow(new Decimal(1/3))
+    const diameter = (new Decimal(d)).pow(new Decimal(0.78))
+    const velocity = (new Decimal(initialVelocity)).pow(new Decimal(0.44))
+    const gravity = (new Decimal(9.81)).pow(new Decimal(-0.22))
+    const crater_radius: any = densities.times(diameter).times(velocity).times(gravity)
+
+    const energy = (new Decimal(2/3)).times(diameter.div(new Decimal(2))).times(new Decimal(3000)).times(velocity.pow(new Decimal(2)))
 
     res.send({
-        crater_radius: 10
+        crater_radius,
+        victims: 100,
+        shockwave_radius: crater_radius*20,
+        earthquake_radius: crater_radius*100,
+        earthquake_magnitude: energy.log(10).minus(new Decimal(4.8)).div(new Decimal(1.5)),
+        money: 45000000000,
+        velocity,
+        tsunami_height: energy.div(980000).squareRoot().times((new Decimal(400)).pow(1/4))
     });
 })
 
@@ -142,40 +163,6 @@ server.listen(PORT, () => {
     console.log(`Listening on http://localhost:${PORT}`);
 });
 
-
-/* ==== CALCULATIONS ======================================================== */
-/** Calculates the new semiaxis for the asteroid orbit so that it
- *  intersects the earth. */
-function reverse(e: number, theta: number, x: number, y: number) {
-    const P = x * Math.cos(theta) + y * Math.sin(theta);
-    const Q = -x * Math.sin(theta) + y * Math.cos(theta);
-    const alpha = (e ** 2) * ((1 - e ** 2) * (1 - Math.cos(theta)) ** 2 + (Math.sin(theta)) ** 2) - (1 - e ** 2);
-    const beta = 2 * e * ((1 - e ** 2) * P * (1 - Math.cos(theta)) + Q * Math.sin(theta));
-    const gamma = (1 - e ** 2) * P ** 2 + Q ** 2;
-
-    return (-beta + Math.sqrt(beta ** 2 - 4 * alpha * gamma)) / (2 * alpha)
-}
-
-const SOLAR_MASS = 1.988416 * 10 ** 30
-const GRAVITATIONAL_CONSTANT = 6.67 * 10 ** -11
-function initialMeteorVelocity(x: number, y: number, semi_major_axis: number) {
-    const meteor_sun_distance = Math.sqrt(x ** 2 + y ** 2);
-    return Math.sqrt(SOLAR_MASS * GRAVITATIONAL_CONSTANT * ((2 / meteor_sun_distance) - (1 / semi_major_axis)))
-}
-
-const SOLAR_MASS2 = new Decimal('1.988416e30');
-const GRAVITATIONAL_CONSTANT2 = new Decimal('6.67e-11');
-function initialMeteorVelocity2(_x: number, _y: number, _semi_major_axis: number) {
-    const x = new Decimal(_x);
-    const y = new Decimal(_y);
-    const semi_major_axis = new Decimal(_semi_major_axis);
-
-    const r = x.pow(2).plus(y.pow(2)).sqrt();
-    const term = new Decimal(2).div(r).minus(new Decimal(1).div(semi_major_axis));
-    const result = SOLAR_MASS2.times(GRAVITATIONAL_CONSTANT2).times(term).sqrt();
-
-    return result;
-}
 
 /* ==== UTILS =============================================================== */
 /** Removes the "links" key recursively from a JSON object. */
