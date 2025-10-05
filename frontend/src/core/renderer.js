@@ -18,6 +18,24 @@ function keplerSolve(e, M) {
   return E;
 }
 
+function propagateOrbit(t, elements, direction = 1, initialMeanAnomaly = 0) {
+  let { semi_major_axis: a, eccentricity: e, inclination: i, ascending_node_longitude: raan, perihelion_argument: argPeriapsis, orbital_period: period } = elements;
+  a *= 50
+  const n = (2 * Math.PI) / period;
+  const M = initialMeanAnomaly + direction * n * t;
+  const E = keplerSolve(e, M);
+
+  const x_orb = a * (Math.cos(E) - e);
+  const y_orb = a * Math.sqrt(1 - e * e) * Math.sin(E);
+
+  const pos = new THREE.Vector3(x_orb, y_orb, 0);
+  pos.applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(argPeriapsis)); // argomento del periapside
+  pos.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(raan));         // nodo ascendente
+  pos.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(i));
+
+  return pos;
+}
+
 function checkAsteroidSatelliteCollision(asteroidMesh, asteroidRadius, satelliteMesh) {
   // bounding box del satellite
   const satelliteBox = new THREE.Box3().setFromObject(satelliteMesh);
@@ -34,24 +52,6 @@ function checkAsteroidSatelliteCollision(asteroidMesh, asteroidRadius, satellite
 
   // collisione se distanza < raggio
   return distance < asteroidRadius;
-}
-
-function propagateOrbit(t, elements) {
-  let { semi_major_axis: a, eccentricity: e, inclination: i, ascending_node_longitude: raan, perihelion_argument: argPeriapsis, orbital_period: period } = elements;
-  a *= 50
-  const n = (2 * Math.PI) / period;
-  const M = n * t;
-  const E = keplerSolve(e, M);
-
-  const x_orb = a * (Math.cos(E) - e);
-  const y_orb = a * Math.sqrt(1 - e * e) * Math.sin(E);
-
-  const pos = new THREE.Vector3(x_orb, y_orb, 0);
-  pos.applyAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(argPeriapsis)); // argomento del periapside
-  pos.applyAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(raan));         // nodo ascendente
-  pos.applyAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(i));
-
-  return pos;
 }
 
 export function createOrbitLine(elements, sunPosition, segments = 200) {
@@ -103,7 +103,7 @@ export function renderStaticScene(scene, camera, renderer){
   animate();
 }
 
-export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh, currentOrbitData) {
+export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh, satelliteLabel, currentOrbitData) {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
@@ -125,11 +125,17 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
   function animate() {
     const elapsed = clock.getElapsedTime();
     const dt = clock.getDelta();
-    asteroidMesh.position.x += 0.5 * dt; // movimento verso la Terra
+    //asteroidMesh.position.x += 0.5 * dt; // movimento verso la Terra
 
     const earthAsteroidDistance = earthMesh.position.distanceTo(asteroidMesh.position);
 
     if (satelliteMesh !== null && checkAsteroidSatelliteCollision(asteroidMesh, asteroidRadius, satelliteMesh)) {
+      console.log("Collisione satellite")
+      currentOrbitData.semi_major_axis = 0.8
+      const orbitLine = createOrbitLine(currentOrbitData, sunMesh.position);
+      scene.add(orbitLine);
+      scene.remove(satelliteMesh)
+      scene.remove(satelliteLabel)
       // qui puoi aggiungere effetti, rimuovere oggetti, ecc.
     }
 
@@ -157,11 +163,19 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
     const pos = propagateOrbit(elapsed, currentOrbitData);
     pos.add(sunMesh.position); // trasla l'orbita attorno al Sole
     asteroidMesh.position.copy(pos);
+    
+    const satellitePos = propagateOrbit(elapsed, currentOrbitData, -1, Math.PI / 2)
+    satellitePos.add(sunMesh.position)
+    satelliteMesh.position.copy(satellitePos);
+
+    satelliteLabel.position.copy(satelliteMesh.position);
+    satelliteLabel.position.y += 1.5; // solleva sopra il satellite
 
     asteroidLabel.position.copy(asteroidMesh.position);
     asteroidLabel.position.y += 1.5; // solleva sopra l'asteroide
 
     updateLabelScale(asteroidLabel, camera);
+    updateLabelScale(satelliteLabel, camera)
     controls.update();
 
     renderer.render(scene, camera);
@@ -172,9 +186,7 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
 
   return {
     updateOrbit(modifyFn) {
-      console.log("Prima orbital data" + JSON.stringify(currentOrbitData))
       modifyFn(currentOrbitData);          // modifica i valori che vuoi
-      console.log(" orbital " +  JSON.stringify(currentOrbitData))
     }
   };
 }

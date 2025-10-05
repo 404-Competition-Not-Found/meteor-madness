@@ -5,10 +5,8 @@ function round3(value) {
 }
 
 
-export async function updateHUD(message, consequences = {}, showReset = true) {
-  const data = await getImpact();
-
-  console.log(data);
+export async function updateHUD(message, consequences = {}, showReset = true, diameter = 200) {
+  const data = await getImpact(diameter);
 
   consequences = {
     craterRadius: round3(data.crater_radius),

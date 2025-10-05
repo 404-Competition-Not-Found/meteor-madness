@@ -2,7 +2,7 @@ import { createScene } from './core/scene.js';
 import { createEarth } from './core/objects/earth.js';
 import { createSpace } from './core/objects/space.js';
 import { createButtonSprite } from './core/objects/space.js';
-import { createSatellite } from './core/objects/satellite.js';
+import { createSatellite, createSatelliteLabel } from './core/objects/satellite.js';
 import { startRenderLoop } from './core/renderer.js';
 import { createAsteroid } from './core/objects/asteroid.js';
 import { getAsteroids } from '../src/services/api.js';
@@ -129,17 +129,12 @@ async function showAsteroidDetails(asteroid) {
       let satelliteMesh = null;
       
       if (deflect) {
-        satelliteMesh = await createSatellite();
+        satelliteMesh = createSatellite();
         scene.add(satelliteMesh);
-
-        createSatellite().then((satelliteMesh) => {
-          scene.add(satelliteMesh);
-          orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, orbitData)      
-        }).catch((err) => {
-          console.error(err);
-        });
+        let satMock = createAsteroid()
+        orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh, satelliteLabel, orbitData)      
       }else{
-        orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, orbitData)    
+        orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh, satelliteLabel, orbitData)    
       }
     });
   })
@@ -237,8 +232,8 @@ button.onclick = async () => {
     orbit.eccentricity = 0.16
     orbit.perihelion_argument = 180
     orbit.ascending_node_longitude = 0;
-    orbit.inclination = 0
-    orbit.orbital_period = 15
+    //orbit.inclination = 0
+    orbit.orbital_period = 35
     orbitLine = createOrbitLine(orbit, sunMesh.position);
     scene.add(orbitLine);
   });
@@ -253,10 +248,12 @@ const spaceMesh = createSpace();
 const asteroidMesh = createAsteroid();
 const sunMesh = createSun();
 const asteroidLabel = createAsteroidLabel('Asteroid');
+const satelliteLabel = createSatelliteLabel('Probe');
 
 scene.add(earthMesh);
 scene.add(sunMesh);
 scene.add(asteroidLabel);
+scene.add(satelliteLabel);
 scene.add(spaceMesh);
 
 renderStaticScene(scene, camera, renderer);

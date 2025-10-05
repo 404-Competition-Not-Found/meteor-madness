@@ -18,8 +18,6 @@ async function fetchHazardousAsteroids() {
       const hazardousForDay = dailyAsteroids.filter(asteroid => asteroid.is_potentially_hazardous_asteroid);
       hazardousAsteroids = hazardousAsteroids.concat(hazardousForDay);
     }
-
-    console.log(JSON.stringify(hazardousAsteroids));
     return hazardousAsteroids;
 
   } catch (error) {

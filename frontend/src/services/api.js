@@ -10,16 +10,23 @@ export async function getAsteroids() {
       end_date: endDate,
     },
   });
-  console.log(response.data)
   return response.data;
 }
 
-export async function getImpact() {
+export async function getImpact(diameter) {
   const response = await axios.post(`http://localhost:8000/simulate/impact`, {
-    semi_major_axis: 2,
-    diameter: 200,
+    semi_major_axis: 0.86,
+    diameter: diameter,
     
   });
-  console.log(response.data)
+  return response.data;
+}
+
+export async function simulateDeflect(diameter) {
+  const response = await axios.post(`http://localhost:8000/simulate/deflect`, {
+    semi_major_axis: 0.86,
+    diameter: diameter,
+    
+  });
   return response.data;
 }
