@@ -1,30 +1,30 @@
 import * as THREE from 'three';
 
 export function createAsteroidLabel(text) {
-  // Canvas per disegnare il testo
   const canvas = document.createElement('canvas');
-  const size = 128;
+  const size = 512; // alta risoluzione per nitidezza
   canvas.width = size;
   canvas.height = size;
   const context = canvas.getContext('2d');
 
-  // Sfondo trasparente
   context.clearRect(0, 0, size, size);
 
-  // Testo bianco centrato
+  // Testo bianco centrato e più sottile
   context.fillStyle = 'white';
-  context.font = '24px Arial';
+  context.font = '48px "Roboto Mono", monospace'; // rimuovo il bold per renderlo sottile
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.fillText(text, size / 2, size / 2);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.needsUpdate = true;
+  texture.minFilter = THREE.LinearFilter; // evita sfocatura
+  texture.magFilter = THREE.LinearFilter;
 
   const material = new THREE.SpriteMaterial({ map: texture });
   const sprite = new THREE.Sprite(material);
 
-  sprite.scale.set(2, 1, 1); // scala della label
+  sprite.scale.set(2, 1, 1); // scala finale in scena
   return sprite;
 }
 

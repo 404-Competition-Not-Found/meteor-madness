@@ -35,6 +35,11 @@ filters.innerHTML = `
 `;
 hud.appendChild(filters);
 
+// 🔹 Imposta default date a oggi
+const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+document.getElementById('startDate').value = today;
+document.getElementById('endDate').value = today;
+
 // --- Header tabella ---
 // --- Header tabella (semplificato) ---
 const header = document.createElement('div');
@@ -87,7 +92,7 @@ function renderAsteroids(list) {
     item.className = 'asteroid-item';
     item.innerHTML = `
       <span>${a.name}</span>
-      <span>${a.diameter} m</span>
+      <span>${a.estimated_diameter.toFixed(3)} km</span>
       <span>${a.date || '—'}</span>
     `;
     item.addEventListener('click', () => showAsteroidDetails(a));
@@ -108,6 +113,12 @@ function showAsteroidDetails(asteroid) {
         <p><strong>Semi-Major Axis:</strong> ${asteroid.semiMajor} AU</p>
         <p><strong>Inclination:</strong> ${asteroid.inclination ?? 'N/A'}</p>
       </div>
+
+      <label class="hud-checkbox">
+        <input type="checkbox" id="deflectCheckbox" />
+        Deflect Asteroid
+      </label>
+
       <button id="startSimBtn" class="hud-btn">Start Simulation</button>
     </div>
   `;
@@ -120,8 +131,25 @@ function showAsteroidDetails(asteroid) {
     hud.appendChild(asteroidListEl);
   });
 
-  document.getElementById('startSimBtn').addEventListener('click', () => {
-    console.log(`Starting simulation for ${asteroid.name}...`);
+  document.getElementById('startSimBtn').addEventListener('click', async () => {
+    const deflect = document.getElementById('deflectCheckbox').checked;
+    console.log(`Starting simulation for ${asteroid.name}, deflect: ${deflect}`);
+
+    // --- Aggiungi satellite solo se la checkbox è selezionata ---
+    let satelliteMesh = null;
+    if (deflect) {
+      satelliteMesh = await createSatellite();
+      scene.add(satelliteMesh);
+
+      createSatellite().then((satelliteMesh) => {
+        scene.add(satelliteMesh);
+        startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, false)      
+      }).catch((err) => {
+        console.error(err);
+      });
+    }else{
+      startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, false)    
+    }
   });
 }
 
@@ -153,23 +181,14 @@ document.getElementById('loadAsteroidsBtn').addEventListener('click', () => {
 
 // --- Setup scena 3D ---
 const earthMesh = createEarth();
-scene.add(earthMesh);
-
 const spaceMesh = createSpace();
+const asteroidMesh = createAsteroid();
+const sunMesh = createSun();
+const asteroidLabel = createAsteroidLabel('Asteroid');
+
+scene.add(earthMesh);
+scene.add(sunMesh);
+scene.add(asteroidLabel);
 scene.add(spaceMesh);
 
-const asteroidMesh = createAsteroid();
-scene.add(asteroidMesh);
-
-const sunMesh = createSun();
-scene.add(sunMesh);
-
-const asteroidLabel = createAsteroidLabel('Asteroid');
-scene.add(asteroidLabel);
-
-createSatellite().then((satelliteMesh) => {
-  scene.add(satelliteMesh);
-  startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh);
-}).catch((err) => {
-  console.error(err);
-});
+startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, spaceMesh, true)

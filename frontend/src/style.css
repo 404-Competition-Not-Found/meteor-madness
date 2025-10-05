@@ -207,3 +207,21 @@ body, #hud, .asteroid-item, .hud-btn, input, label, span, p, h2 {
 input, button {
   font-family: inherit;
 }
+
+.hud-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.95rem;
+  color: #00ffff;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.hud-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #00ffff; /* colore del check */
+  cursor: pointer;
+}
