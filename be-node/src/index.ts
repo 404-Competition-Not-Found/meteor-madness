@@ -85,6 +85,28 @@ app.get("/asteroids/:id", async (req: any, res: any) => {
         }
     });
 
+    const km = data.estimated_diameter?.kilometers;
+    if (km && typeof km.estimated_diameter_min === 'number' && typeof km.estimated_diameter_max === 'number') {
+        data.estimated_diameter = (km.estimated_diameter_min + km.estimated_diameter_max) / 2;
+    }
+
+
+    // Get current time in milliseconds
+    const now = Date.now();
+
+    // Filter out past dates
+    const futureApproaches = data.close_approach_data.filter((entry: any) => {
+        return entry.epoch_date_close_approach > now;
+    });
+
+    // Sort by closest upcoming date
+    const closestApproach = futureApproaches.sort((a: any, b: any) => {
+        return a.epoch_date_close_approach - b.epoch_date_close_approach;
+    })[0];
+
+    data.closest_approach_data = closestApproach;
+
+
     res.send(removeLinks(data));
 })
 
@@ -161,29 +183,39 @@ app.post("/simulate/impact", async (req: any, res: any) => {
 })
 
 app.post("/simulate/deflect", async (req: any, res: any) => {
-    const { velocity, diameter, point } = req.body || {};
+    const SOLAR_MASS2 = new Decimal('1.988416e30');
+    const GRAVITATIONAL_CONSTANT2 = new Decimal('6.67e-11');
+
+    const { semi_major_axis: sma, diameter, point } = req.body || {};
     if (
-        typeof velocity !== 'number'
+        typeof sma !== 'number' || typeof diameter !== 'number'
         //|| !point || typeof point.x !== 'number' || typeof point.y !== 'number'
     ) return res.status(400).send()
+
+    const semi_major_axis = uaToMeters(new Decimal(sma));
+    const r = uaToMeters(new Decimal(1));  // x.pow(2).plus(y.pow(2)).sqrt();
+
+    const term = new Decimal(2).div(r).minus(new Decimal(1).div(semi_major_axis));
+
+    const initialVelocity = SOLAR_MASS2.times(GRAVITATIONAL_CONSTANT2).times(term).sqrt();
+    const asteroid_velocity = (new Decimal(initialVelocity)).pow(new Decimal(0.44))
+
 
     // Calculate asteroid velocity after impact
     const probe_mass = new Decimal(570);    // 610kg con carburante
     const probe_velocity = new Decimal(6.6);
     // Diametro in km, divido per 1000
     const asteroid_mass = new Decimal(4/3).times(Math.PI).times( (new Decimal(diameter).times(1000)).div(2).pow(3) ).times(3000);
-    const asteroid_velocity = new Decimal(10);
+    //const asteroid_velocity = new Decimal(10);
     const final_asteroid_velocity = probe_mass.times(probe_velocity).minus(asteroid_mass.times(asteroid_velocity)).div(probe_mass.plus(asteroid_mass))
 
-    const SOLAR_MASS2 = new Decimal('1.988416e30');
-    const GRAVITATIONAL_CONSTANT2 = new Decimal('6.67e-11');
     const distance = uaToMeters(new Decimal(1)) //new Decimal(point.x).pow(2).plus( new Decimal(point.y).pow(2) ).sqrt();
 
-    const semi_major_axis = new Decimal(-1/2).times(distance).times(SOLAR_MASS2).times(GRAVITATIONAL_CONSTANT2).div(
+    const new_semi_major_axis = new Decimal(-1/2).times(distance).times(SOLAR_MASS2).times(GRAVITATIONAL_CONSTANT2).div(
         new Decimal(1/2).times( final_asteroid_velocity.pow(2) ).times(distance).minus( SOLAR_MASS2.times(GRAVITATIONAL_CONSTANT2) )
     )
 
-    res.send({ semi_major_axis: metersToUa(semi_major_axis).toNumber() });
+    res.send({ semi_major_axis: metersToUa(new_semi_major_axis).toNumber() });
 })
 
 
