@@ -115,7 +115,7 @@ app.post("/simulate/impact", async (req: any, res: any) => {
     const { point, diameter: d, semi_major_axis: sma } = req.body || {};
     if (
         typeof sma !== 'number' || typeof d !== 'number'
-        || !point || typeof point.x !== 'number' || typeof point.y !== 'number'
+        //|| !point || typeof point.x !== 'number' || typeof point.y !== 'number'
     ) return res.status(400).send()
 
     // TODO: calcolare:
@@ -141,7 +141,7 @@ app.post("/simulate/impact", async (req: any, res: any) => {
     // Calculate crater radius
     const densities = (new Decimal(6/5)).pow(new Decimal(1/3))
     // Diametro in km, divido per 1000
-    const diameter = (new Decimal(d).div(1000)).pow(new Decimal(0.78))
+    const diameter = (new Decimal(d).times(1000)).pow(new Decimal(0.78))
     const velocity = (new Decimal(initialVelocity)).pow(new Decimal(0.44))
     const gravity = (new Decimal(9.81)).pow(new Decimal(-0.22))
     const crater_radius: Decimal = densities.times(diameter).times(velocity).times(gravity)
@@ -163,15 +163,15 @@ app.post("/simulate/impact", async (req: any, res: any) => {
 app.post("/simulate/deflect", async (req: any, res: any) => {
     const { velocity, diameter, point } = req.body || {};
     if (
-        typeof velocity !== 'number' ||
-        !point || typeof point.x !== 'number' || typeof point.y !== 'number'
+        typeof velocity !== 'number'
+        //|| !point || typeof point.x !== 'number' || typeof point.y !== 'number'
     ) return res.status(400).send()
 
     // Calculate asteroid velocity after impact
     const probe_mass = new Decimal(570);    // 610kg con carburante
     const probe_velocity = new Decimal(6.6);
     // Diametro in km, divido per 1000
-    const asteroid_mass = new Decimal(4/3).times(Math.PI).times( (new Decimal(diameter).div(1000)).div(2).pow(3) ).times(3000);
+    const asteroid_mass = new Decimal(4/3).times(Math.PI).times( (new Decimal(diameter).times(1000)).div(2).pow(3) ).times(3000);
     const asteroid_velocity = new Decimal(10);
     const final_asteroid_velocity = probe_mass.times(probe_velocity).minus(asteroid_mass.times(asteroid_velocity)).div(probe_mass.plus(asteroid_mass))
 
@@ -183,7 +183,7 @@ app.post("/simulate/deflect", async (req: any, res: any) => {
         new Decimal(1/2).times( final_asteroid_velocity.pow(2) ).times(distance).minus( SOLAR_MASS2.times(GRAVITATIONAL_CONSTANT2) )
     )
 
-    return { semi_major_axis: metersToUa(semi_major_axis).toNumber() };
+    res.send({ semi_major_axis: metersToUa(semi_major_axis).toNumber() });
 })
 
 
