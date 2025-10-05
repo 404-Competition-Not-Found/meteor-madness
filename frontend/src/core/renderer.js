@@ -54,14 +54,13 @@ function propagateOrbit(t, elements) {
 function createOrbitLine(elements, sunPosition, segments = 200) {
   let { semi_major_axis: a, eccentricity: e, inclination: i, ascending_node_longitude: raan, perihelion_argument: argPeriapsis } = elements;
   a*=50
-  console.log("a -> " + a)
+  console.log("Ricreo la linea dell'orbita")
   const points = [];
 
   for (let j = 0; j <= segments; j++) {
     const M = (2 * Math.PI * j) / segments;
     const E = keplerSolve(e, M);
     const x_orb = a * (Math.cos(E) - e);
-    console.log("x_orb ->" + x_orb)
     const y_orb = a * Math.sqrt(1 - e * e) * Math.sin(E);
     const pos = new THREE.Vector3(x_orb, y_orb, 0);
     
@@ -88,7 +87,7 @@ function updateLabelScale(sprite, camera) {
 }
 
 export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh) {
-  fetchOrbitDataByAsteroidId(3427459).then((orbitData) =>{
+  return fetchOrbitDataByAsteroidId(3427459).then((orbitData) =>{
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
@@ -106,7 +105,8 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
 
     let explosionParticles = null;
 
-    const orbitLine = createOrbitLine(orbitData, sunMesh.position);
+    let currentOrbitData = orbitData;
+    let orbitLine = createOrbitLine(currentOrbitData, sunMesh.position);
     scene.add(orbitLine);
 
     function animate() {
@@ -141,7 +141,7 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
       if (explosionParticles) updateExplosion(explosionParticles, dt);
 
       controls.update();
-      const pos = propagateOrbit(elapsed, orbitData);
+      const pos = propagateOrbit(elapsed, currentOrbitData);
       pos.add(sunMesh.position); // trasla l'orbita attorno al Sole
       asteroidMesh.position.copy(pos);
 
@@ -154,5 +154,17 @@ export function startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabe
       requestAnimationFrame(animate);
     }
     animate();
+    return {
+      updateOrbit(modifyFn) {
+        console.log("Prima semimasse" + currentOrbitData.semi_major_axis)
+        console.log("Prima angolo" + currentOrbitData.perihelion_argument)
+        modifyFn(currentOrbitData);          // modifica i valori che vuoi
+        console.log("Dopo" + currentOrbitData.semi_major_axis)
+        console.log("Dopo angolo" + currentOrbitData.perihelion_argument)
+        scene.remove(orbitLine);
+        orbitLine = createOrbitLine(currentOrbitData, sunMesh.position);
+        scene.add(orbitLine);
+      }
+    };
   });
 }

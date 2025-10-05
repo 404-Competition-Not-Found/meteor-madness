@@ -1,6 +1,7 @@
 import { createScene } from './core/scene.js';
 import { createEarth } from './core/objects/earth.js';
 import { createSpace } from './core/objects/space.js';
+import { createButtonSprite } from './core/objects/space.js';
 import { createSatellite } from './core/objects/satellite.js';
 import { startRenderLoop } from './core/renderer.js';
 import { createAsteroid } from './core/objects/asteroid.js';
@@ -11,6 +12,8 @@ import { createAsteroidLabel } from './core/objects/asteroid.js';
 
 const { scene, camera, renderer } = createScene();
 
+
+let orbitControllerPromise 
 // --- HUD ---
 const hud = document.createElement('div');
 hud.id = 'hud';
@@ -150,6 +153,46 @@ document.getElementById('loadAsteroidsBtn').addEventListener('click', () => {
 
   loadAsteroids(start, end);
 });
+// Crea il bottone
+const button = document.createElement('button');
+button.innerText = 'Align trajectory';
+button.id = 'floating-button';
+
+// Applica gli stili
+Object.assign(button.style, {
+  position: 'fixed',
+  bottom: '20px',
+  left: '50%',           // centro orizzontalmente
+  transform: 'translateX(-50%)', // corregge il centro
+  background: '#007bff',
+  color: 'white',
+  border: 'none',
+  borderRadius: '30px', // arrotondato
+  padding: '10px 20px', // larghezza dinamica in base al testo
+  fontSize: '20px',
+  cursor: 'pointer',
+  boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+  transition: 'transform 0.2s ease',
+  zIndex: '9999', // sopra al canvas
+  whiteSpace: 'nowrap', // evita a capo
+  userSelect: 'none',
+});
+
+// Animazioni hover
+button.onmouseenter = () => (button.style.transform = 'translateX(-50%) scale(1.1)');
+button.onmouseleave = () => (button.style.transform = 'translateX(-50%) scale(1)');
+
+// Azione al click
+button.onclick = async () => {
+  const orbitController = await orbitControllerPromise;  // aspetta che fetch e loop siano pronti
+  orbitController.updateOrbit((orbit) => {
+    orbit.semi_major_axis = 0.86;
+    orbit.ascending_node_longitude = 0;
+  });
+};
+
+// Aggiungi al body
+document.body.appendChild(button);
 
 // --- Setup scena 3D ---
 const earthMesh = createEarth();
@@ -169,7 +212,7 @@ scene.add(asteroidLabel);
 
 createSatellite().then((satelliteMesh) => {
   scene.add(satelliteMesh);
-  startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh);
+  orbitControllerPromise = startRenderLoop(scene, camera, renderer, earthMesh, asteroidLabel, asteroidMesh, sunMesh, satelliteMesh);
 }).catch((err) => {
   console.error(err);
 });
