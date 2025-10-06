@@ -82,7 +82,7 @@ ARGUS is designed to support:
 
 ## 👨‍🚀 Team ARGUS
 
-- **Edoardo Maioli**: Orbital Dynamics & Interactive Simulation Engineer
+- **Edoardo Maioli**: Orbital Dynamics & 3D Rendering Engineer
 
 - **Filippo Venturini**: Collision Systems & 3D Rendering Engineer
 
