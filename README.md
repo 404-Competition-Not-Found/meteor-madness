@@ -7,7 +7,7 @@
 
 ![meteor event GIF](docs/gif/loop.gif)
 
-**ARGUS** (Aerial & Ground-based Unified System) is a prototype/experimental platform developed for the **NASA Space Apps Challenge 2025**.  
+**ARGUS** is a prototype/experimental platform developed for the **NASA Space Apps Challenge 2025**.  
 It is intended as both a **research tool** and a **decision-support engine** for evaluating near-Earth object (NEO) behavior, impact effects, and mitigation strategies.
 
 Key capabilities:
@@ -24,14 +24,14 @@ ARGUS is currently intended for **local execution only** (no cloud deployment), 
 
 ## 🪐 In Action
 
-Below are sample images or GIFs to showcase ARGUS in action.
+Below are sample GIFs to showcase ARGUS in action during: catalog selection, orbit calculation, impact simulation and asteroid deflection.
 
 | View | Preview |
 |------|---------|
 | NASA NEO Catalog | ![dashboard screenshot](docs/gif/catalog.gif) |
-| Real trajectories | ![meteor event GIF](docs/gif/real-trajectory.gif) |
-| Impact | ![map overlay](docs/gif/impact.gif) |
-| Deflection | ![map overlay](docs/gif/deflection.gif) |
+| Orbit Calculations | ![meteor event GIF](docs/gif/real-trajectory.gif) |
+| Impact Simulation | ![map overlay](docs/gif/impact.gif) |
+| Asteroid Deflection | ![map overlay](docs/gif/deflection.gif) |
 
 
 ## ⚙️ Technologies
