@@ -1,10 +1,7 @@
-# ARGUS (Meteor Madness)
+![logo](docs/img/logo.png)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)  
-[![Build Status](https://img.shields.io/badge/build–status-local-green.svg)]()  
-[![Space Apps 2025](https://img.shields.io/badge/NASA–SpaceApps–2025-orange.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)  [![Build Status](https://img.shields.io/badge/build–status-local-green.svg)]()  [![Space Apps 2025](https://img.shields.io/badge/NASA–SpaceApps–2025-orange.svg)]()
 
----
 
 ## 🚀 Project Overview
 
