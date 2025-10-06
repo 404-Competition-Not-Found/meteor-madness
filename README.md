@@ -22,7 +22,7 @@ Key capabilities:
 
 ARGUS is currently intended for **local execution only** (no cloud deployment), but is structured to be extensible for larger usage.
 
-## 🎬 Screenshots & GIFs
+## 🪐 In Action
 
 Below are sample images or GIFs to showcase ARGUS in action.
 
@@ -34,9 +34,7 @@ Below are sample images or GIFs to showcase ARGUS in action.
 | Deflection | ![map overlay](docs/gif/deflection.gif) |
 
 
-## ⚙️ Requirements & Technologies
-
-### Core Technologies
+## ⚙️ Technologies
 
 - Node.js: backend server, simulation logic, data fetching
 
@@ -47,6 +45,8 @@ Below are sample images or GIFs to showcase ARGUS in action.
 - NASA NeoWs (Near Earth Object Web Service): used to fetch asteroid catalog, orbital parameters, and close approach data
 
 ## 🛠️ Getting Started (Local)
+
+To run ARGUS you will need **Node.js v20 or later** installed in your machine. 
 
 Follow these steps to get ARGUS running on your local machine:
 
