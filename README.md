@@ -31,9 +31,10 @@ Below are sample images or GIFs to showcase ARGUS in action.
 
 | View | Preview |
 |------|---------|
-| Dashboard view | ![dashboard screenshot](docs/gif/catalog.gif) |
-| Real-time meteor event | ![meteor event GIF](docs/gif/real-trajectory.gif) |
-| Map + data overlay | ![map overlay](docs/img/map_overlay.png) |
+| NASA NEO Catalog | ![dashboard screenshot](docs/gif/catalog.gif) |
+| Real trajectories | ![meteor event GIF](docs/gif/real-trajectory.gif) |
+| Impact | ![map overlay](docs/gif/impact.gif) |
+| Deflection | ![map overlay](docs/gif/deflection.gif) |
 
 
 ## ⚙️ Requirements & Technologies
@@ -81,3 +82,15 @@ ARGUS is designed to support:
 - Assessment of deflection strategies (e.g. kinetic impact, gravity tractor) and their efficacy
 
 - Support to non-technical stakeholders (governments, agencies) by converting physical simulation into visual, intuitive outputs for decision making
+
+## 👨‍🚀 Team ARGUS
+
+- **Edoardo Maioli**: Orbital Dynamics & Interactive Simulation Engineer
+
+- **Filippo Venturini**: Collision Systems & 3D Rendering Engineer
+
+- **Alessandro Sabia**: Astrophysicist (orbital dynamics & physical modeling)
+
+- **Valerio Tatulli**: Backend Developer (API ingestion, data preprocessing)
+
+- **Davide Zhu**: Backend Developer (infrastructure, data sync)
