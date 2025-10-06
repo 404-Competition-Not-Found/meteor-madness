@@ -26,7 +26,7 @@ ARGUS is currently intended for **local execution only** (no cloud deployment), 
 
 Below are sample GIFs to showcase ARGUS in action during: catalog selection, orbit calculation, impact simulation and asteroid deflection.
 
-| View | Preview |
+| Feature | Demo |
 |------|---------|
 | NASA NEO Catalog | ![dashboard screenshot](docs/gif/catalog.gif) |
 | Orbit Calculations | ![meteor event GIF](docs/gif/real-trajectory.gif) |
